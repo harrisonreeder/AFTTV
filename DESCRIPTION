@@ -17,3 +17,8 @@ Suggests:
     flexsurv,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+LinkingTo: 
+    RcppArmadillo,
+    Rcpp
+Imports: 
+    Rcpp
