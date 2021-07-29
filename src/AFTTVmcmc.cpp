@@ -16,8 +16,10 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
   //set constants
   int n = Xmat.n_rows;
   int p = Xmat.n_cols;
-  int n_store = n_sample / thin; //tested elsewhere that this 'fits'
+  int n_store = n_sample / thin; //tested in wrapper function that these numbers 'work'
   int n_iter = n_burnin + n_sample; //tested elsewhere that this 'fits'
+  int move; //index for which parameter to update
+  int M; //counter for MCMC sampler
 
   //set hyperparameters
   double a_sigSq = hyperP(0);
@@ -27,6 +29,18 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
   double beta_prop_var = mcmcP(0);
   double mu_prop_var = mcmcP(1);
   double sigSq_prop_var = mcmcP(2);
+
+  /*
+  double pBeta = 0.3; //probability of updating beta (random scan)
+  double pMu = 0.3; //probability of updating mu (random scan)
+  double pSigSq = 0.2;  //probability of updating sigSq (random scan)
+
+  arma::vec moveProb = arma::vec(6);
+  moveProb(0) = pBeta;
+  moveProb(1) = pMu;
+  moveProb(2) = pSigSq;
+  */
+
 
   //initialize starting values
   double mu = startValues(0);
@@ -40,6 +54,24 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
   arma::vec accept_beta = arma::vec(p);
   double accept_mu = 0;
   double accept_sigSq = 0;
+
+  for(M = 0; M < n_iter; M++){
+    /*
+    if( ( (M) % 100 ) == 0)
+    {
+      Rcpp::checkUserInterrupt();
+    }
+    */
+
+    // move = R::sample(rr, moveProb, 5);
+
+    move = 1111;
+
+    //update_beta(c0, c0_neginf, X, w, beta, tauSq, mu, sigSq, beta_prop_var, accept_beta);
+    //update_mu(c0, c0_neginf, X, w, beta, &mu, sigSq, mu0, h0, mu_prop_var, &accept_mu);
+    //update_sigSq(c0, c0_neginf, X, w, beta, tauSq, mu, &sigSq, a_sigSq, b_sigSq, sigSq_prop_var, &accept_sigSq);
+
+  }
 
   return Rcpp::List::create(
     Rcpp::Named("samples") = Rcpp::List::create(

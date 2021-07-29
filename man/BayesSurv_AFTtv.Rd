@@ -4,7 +4,7 @@
 \alias{BayesSurv_AFTtv}
 \title{Bayesian Accelerated Failure Time Model with Percentile-varying Effects}
 \usage{
-BayesSurv_AFTtv(Y, X, hyperParams, startValues_vec, mcmcParams)
+BayesSurv_AFTtv(Y, Xmat, hyperParams, startValues_vec, mcmcParams)
 }
 \arguments{
 \item{Y}{a matrix with three columns: left end of interval, right end of interval, left truncation time}

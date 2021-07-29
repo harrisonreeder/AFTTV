@@ -2,7 +2,7 @@
 #' Bayesian Accelerated Failure Time Model with Percentile-varying Effects
 #'
 #' @param Y a matrix with three columns: left end of interval, right end of interval, left truncation time
-#' @param X
+#' @param Xmat
 #' @param hyperParams
 #' @param startValues
 #' @param mcmcParams
@@ -10,24 +10,27 @@
 #' @return
 #' @export
 BayesSurv_AFTtv <- function(Y,
-                     X,
+                     Xmat,
                      hyperParams,
                      startValues_vec,
                      mcmcParams)
 {
+  # browser()
   #this version only fits one chain, but we can get multiple chains
   #by externally running twice?
   ###
   n	<- dim(Y)[1]
-  p	<- ncol(X)
+  p	<- ncol(Xmat)
 
   ###
-  hyperP  <- as.vector(c(hyperParams$LN$a.sigSq, hyperParams$LN$b.sigSq#,
-                         # hyperParams$LN$mu0,hyperParams$LN$h0
-                         ))
+  # hyperP  <- as.vector(c(hyperParams$LN$a.sigSq, hyperParams$LN$b.sigSq#,
+  #                        # hyperParams$LN$mu0,hyperParams$LN$h0
+  #                        ))
+  hyperP <- hyperParams$LN$LN.ab
+  #NOTE I'M RETROFITTING THE WORD 'ZETA' HERE BUT WILL CHANGE
   mcmcP   <- as.vector(c(mcmcParams$tuning$beta.prop.var,
                          mcmcParams$tuning$mu.prop.var,
-                         mcmcParams$tuning$sigSq.prop.var))
+                         mcmcParams$tuning$zeta.prop.var)) #should be sigSq
 
   numReps     <- mcmcParams$run$numReps
   thin        <- mcmcParams$run$thin
@@ -67,16 +70,16 @@ BayesSurv_AFTtv <- function(Y,
   }
 
   mcmcRet     <- BAFTtvLTmcmc(
-                    Wmat        = as.double(as.matrix(W)),
-                    wUInf			  = as.double(wUInf),
-                    c0Inf			  = as.double(c0Inf),
-                    Xmat        = as.double(as.matrix(X)),
-                    hyperP      = as.double(hyperP),
-                    mcmcP       = as.double(mcmcP),
-                    startValues = as.double(startValues_vec),
-                    n_burnin		= as.integer(numReps),
-                    n_sample		= as.integer(n_sample),
-                    thin        = as.integer(thin))
+                    Wmat        = W,
+                    wUInf			  = wUInf,
+                    c0Inf			  = c0Inf,
+                    Xmat        = Xmat,
+                    hyperP      = hyperP,
+                    mcmcP       = mcmcP,
+                    startValues = startValues_vec,
+                    n_burnin		= numReps,
+                    n_sample		= n_sample,
+                    thin        = thin)
   return(mcmcRet)
 
   # w.p <- matrix(as.vector(mcmcRet$samples_w), nrow=nStore, byrow=T)
