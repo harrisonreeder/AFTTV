@@ -62,6 +62,8 @@ BayesSurv_AFTtv <- function(Y,
     wUInf[i] <- 1
   }
 
+  wLUeq <- as.numeric(W[,1] == W[,2])
+
   c0Inf <- rep(0, n)
   for(i in 1:n) if(W[i,3] == -Inf)
   {
@@ -72,12 +74,13 @@ BayesSurv_AFTtv <- function(Y,
   mcmcRet     <- BAFTtvLTmcmc(
                     Wmat        = W,
                     wUInf			  = wUInf,
+                    wLUeq			  = wLUeq,
                     c0Inf			  = c0Inf,
                     Xmat        = Xmat,
                     hyperP      = hyperP,
                     mcmcP       = mcmcP,
                     startValues = startValues_vec,
-                    n_burnin		= numReps,
+                    n_burnin		= n_burnin,
                     n_sample		= n_sample,
                     thin        = thin)
   return(mcmcRet)

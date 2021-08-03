@@ -7,13 +7,14 @@
 using namespace Rcpp;
 
 // BAFTtvLTmcmc
-Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat, const arma::vec& wUInf, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& hyperP, const arma::vec& mcmcP, const arma::vec& startValues, int n_burnin, int n_sample, int thin);
-RcppExport SEXP _AFTTV_BAFTtvLTmcmc(SEXP WmatSEXP, SEXP wUInfSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP hyperPSEXP, SEXP mcmcPSEXP, SEXP startValuesSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
+Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat, const arma::vec& wUInf, const arma::vec& wLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& hyperP, const arma::vec& mcmcP, const arma::vec& startValues, int n_burnin, int n_sample, int thin);
+RcppExport SEXP _AFTTV_BAFTtvLTmcmc(SEXP WmatSEXP, SEXP wUInfSEXP, SEXP wLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP hyperPSEXP, SEXP mcmcPSEXP, SEXP startValuesSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type Wmat(WmatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type wUInf(wUInfSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type wLUeq(wLUeqSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type c0Inf(c0InfSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Xmat(XmatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type hyperP(hyperPSEXP);
@@ -22,13 +23,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
     Rcpp::traits::input_parameter< int >::type n_sample(n_sampleSEXP);
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
-    rcpp_result_gen = Rcpp::wrap(BAFTtvLTmcmc(Wmat, wUInf, c0Inf, Xmat, hyperP, mcmcP, startValues, n_burnin, n_sample, thin));
+    rcpp_result_gen = Rcpp::wrap(BAFTtvLTmcmc(Wmat, wUInf, wLUeq, c0Inf, Xmat, hyperP, mcmcP, startValues, n_burnin, n_sample, thin));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_AFTTV_BAFTtvLTmcmc", (DL_FUNC) &_AFTTV_BAFTtvLTmcmc, 10},
+    {"_AFTTV_BAFTtvLTmcmc", (DL_FUNC) &_AFTTV_BAFTtvLTmcmc, 11},
     {NULL, NULL, 0}
 };
 
