@@ -42,21 +42,31 @@ void update_beta(const arma::mat &Wmat,
     eta = mu + xbeta(i);
     eta_prop = mu + xbeta_prop(i);
     if(wLUeq(i)==1){ //no censoring, so use log density
-      loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
-      loglh_prop += R::dnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 1);
+      loglh      += arma::log_normpdf(Wmat(i,0), eta, sqrt(sigSq));
+      loglh_prop += arma::log_normpdf(Wmat(i,0), eta_prop, sqrt(sigSq));
+      // loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
+      // loglh_prop += R::dnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 1);
     } else if(wUInf(i)==1) { //right censoring, so use log survival
-      loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 1);
+      loglh      += log1p(-arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)));
+      loglh_prop += log1p(-arma::normcdf(Wmat(i,0), eta_prop, sqrt(sigSq)));
+      // loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 1);
     } else { //interval censoring, so use log of difference of survival
-      loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
-                           - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
-      loglh_prop += log( R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 0)
-                           - R::pnorm(Wmat(i,1), eta_prop, sqrt(sigSq), 0, 0) );
+      loglh      += log( arma::normcdf(Wmat(i,1), eta, sqrt(sigSq))
+                           - arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)) );
+      loglh_prop += log( arma::normcdf(Wmat(i,1), eta_prop, sqrt(sigSq))
+                           - arma::normcdf(Wmat(i,0), eta_prop, sqrt(sigSq)) );
+      // loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
+      //                      - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
+      // loglh_prop += log( R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 0)
+      //                      - R::pnorm(Wmat(i,1), eta_prop, sqrt(sigSq), 0, 0) );
     }
     //if there is left-truncation, then subtract off the extra term
     if(c0Inf(i) == 0){
-      loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += -R::pnorm(Wmat(i,2), eta_prop, sqrt(sigSq), 0, 1);
+      loglh += -log1p(-arma::normcdf(Wmat(i,2), eta, sqrt(sigSq)));
+      loglh_prop += -log1p(-arma::normcdf(Wmat(i,2), eta_prop, sqrt(sigSq)));
+      // loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += -R::pnorm(Wmat(i,2), eta_prop, sqrt(sigSq), 0, 1);
     }
   }
   logR = loglh_prop - loglh;
@@ -108,21 +118,31 @@ void update_mu(const arma::mat &Wmat,
      * right censoring (right is infinite): compute survivor function at left, ll is that
      * no censoring (left and right equal): compute log density, ll is that */
     if(wLUeq(i)==1){ //no censoring, so use log density
-      loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
-      loglh_prop += R::dnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 1);
+      loglh      += arma::log_normpdf(Wmat(i,0), eta, sqrt(sigSq));
+      loglh_prop += arma::log_normpdf(Wmat(i,0), eta_prop, sqrt(sigSq));
+      // loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
+      // loglh_prop += R::dnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 1);
     } else if(wUInf(i)==1) { //right censoring, so use log survival
-      loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 1);
+      loglh      += log1p(-arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)));
+      loglh_prop += log1p(-arma::normcdf(Wmat(i,0), eta_prop, sqrt(sigSq)));
+      // loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 1);
     } else { //interval censoring, so use log of difference of survival
-      loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
-                           - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
-      loglh_prop += log( R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 0)
-                           - R::pnorm(Wmat(i,1), eta_prop, sqrt(sigSq), 0, 0) );
+      loglh      += log( arma::normcdf(Wmat(i,1), eta, sqrt(sigSq))
+                           - arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)) );
+      loglh_prop += log( arma::normcdf(Wmat(i,1), eta_prop, sqrt(sigSq))
+                           - arma::normcdf(Wmat(i,0), eta_prop, sqrt(sigSq)) );
+      // loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
+      //                      - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
+      // loglh_prop += log( R::pnorm(Wmat(i,0), eta_prop, sqrt(sigSq), 0, 0)
+      //                      - R::pnorm(Wmat(i,1), eta_prop, sqrt(sigSq), 0, 0) );
     }
     //if there is left-truncation, then subtract off the extra term
     if(c0Inf(i) == 0){
-      loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += -R::pnorm(Wmat(i,2), eta_prop, sqrt(sigSq), 0, 1);
+      loglh += -log1p(-arma::normcdf(Wmat(i,2), eta, sqrt(sigSq)));
+      loglh_prop += -log1p(-arma::normcdf(Wmat(i,2), eta_prop, sqrt(sigSq)));
+      // loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += -R::pnorm(Wmat(i,2), eta_prop, sqrt(sigSq), 0, 1);
     }
   }
   logR = loglh_prop - loglh;
@@ -169,31 +189,39 @@ void update_sigSq(const arma::mat &Wmat,
   for(i = 0; i < n; i++){
     eta = mu + xbeta(i);
     if(wLUeq(i)==1){ //no censoring, so use log density
-      loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
-      loglh_prop += R::dnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 1);
+      loglh      += arma::log_normpdf(Wmat(i,0), eta, sqrt(sigSq));
+      loglh_prop += arma::log_normpdf(Wmat(i,0), eta, sqrt(sigSq_prop));
+      // loglh      += R::dnorm(Wmat(i,0), eta, sqrt(sigSq), 1);
+      // loglh_prop += R::dnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 1);
     } else if(wUInf(i)==1) { //right censoring, so use log survival
-      loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += R::pnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 0, 1);
+      loglh      += log1p(-arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)));
+      loglh_prop += log1p(-arma::normcdf(Wmat(i,0), eta, sqrt(sigSq_prop)));
+      // loglh      += R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += R::pnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 0, 1);
     } else { //interval censoring, so use log of difference of survival
-      loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
-                         - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
-      loglh_prop += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 0, 0)
-                         - R::pnorm(Wmat(i,1), eta, sqrt(sigSq_prop), 0, 0) );
+      loglh      += log( arma::normcdf(Wmat(i,1), eta, sqrt(sigSq))
+                           - arma::normcdf(Wmat(i,0), eta, sqrt(sigSq)) );
+      loglh_prop += log( arma::normcdf(Wmat(i,1), eta, sqrt(sigSq_prop))
+                           - arma::normcdf(Wmat(i,0), eta, sqrt(sigSq_prop)) );
+      // loglh      += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq), 0, 0)
+      //                    - R::pnorm(Wmat(i,1), eta, sqrt(sigSq), 0, 0) );
+      // loglh_prop += log( R::pnorm(Wmat(i,0), eta, sqrt(sigSq_prop), 0, 0)
+      //                    - R::pnorm(Wmat(i,1), eta, sqrt(sigSq_prop), 0, 0) );
     }
     //if there is left-truncation, then subtract off the extra term
     if(c0Inf(i) == 0){
-      loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
-      loglh_prop += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq_prop), 0, 1);
+      loglh += -log1p(-arma::normcdf(Wmat(i,2), eta, sqrt(sigSq)));
+      loglh_prop += -log1p(-arma::normcdf(Wmat(i,2), eta, sqrt(sigSq_prop)));
+      // loglh += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq), 0, 1);
+      // loglh_prop += -R::pnorm(Wmat(i,2), eta, sqrt(sigSq_prop), 0, 1);
     }
   }
 
-  //sigSq has an inverse-gamma prior, so
-
+  //sigSq has an inverse-gamma prior, so we define them as follows
   logprior = (-a_sigSq-1)*log(sigSq) - b_sigSq/sigSq;
   logprior_prop = (-a_sigSq-1)*log(sigSq_prop) - b_sigSq/sigSq_prop;
 
-  //Last "log(sigSq_prop) - log(sigSq)" is the "jacobian"
-  //They seem to just dilute the values of a_sigSq and b_sigSq by 1, but I don't get it.
+  //Last "log(sigSq_prop) - log(sigSq)" is the "jacobian" because we sample on transformed scale
 
   logR = loglh_prop - loglh + logprior_prop - logprior + log(sigSq_prop) - log(sigSq);
   u = log(R::runif(0, 1)) < logR;
@@ -225,7 +253,6 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
                         int thin){
   //timekeeping objects
   std::time_t newt;
-  // char tmBuff[30];
 
   //set constants
   int n = Xmat.n_rows;
@@ -273,12 +300,6 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
   //eventually, compute V(t) but for now stick with W
 
   for(M = 0; M < n_iter; M++){
-    /*
-    if( ( (M) % 100 ) == 0)
-    {
-      Rcpp::checkUserInterrupt();
-    }
-    */
 
     //if we've changed beta, recompute V(t) (or in time-invariant case just eta), otherwise no need to
 
@@ -314,18 +335,11 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
     if( ( (M+1) % 10000 ) == 0){
       newt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
       Rcpp::Rcout << "iteration: " << M+1 << ": " << ctime(&newt) << "\n";
+      Rcpp::checkUserInterrupt(); //cheks if the user hit the "stop" icon to cancel running sampler.
+
+      //this is this like alternative
       // Rcpp::Rcout << "iteration: " << M+1 << ": " << ctime_s(tmBuff, sizeof(tmBuff), &newt) << "\n";
     }
-
-    /*
-    if( ( (M+1) % 10000 ) == 0)
-    {
-      time(&now);
-      Rprintf("iteration: %d: %s\n", M+1, ctime(&now));
-      R_FlushConsole();
-      R_ProcessEvents();
-    }
-    */
 
   }
 
@@ -341,5 +355,4 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
   );
 
 }
-
 
