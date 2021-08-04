@@ -2,12 +2,12 @@
 #include <RcppArmadillo.h>
 #include <chrono>
 #include <ctime>
-#include "AFTtv_updates.h"
+#include "AFT_LN_updates.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
 // [[Rcpp::export]]
-Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
+Rcpp::List AFT_LN_mcmc(const arma::mat& Wmat,
                         const arma::vec& wUInf,
                         const arma::vec& wLUeq,
                         const arma::vec& c0Inf,
@@ -71,21 +71,21 @@ Rcpp::List BAFTtvLTmcmc(const arma::mat& Wmat,
     //if we've changed beta, recompute V(t) (or in time-invariant case just eta), otherwise no need to
 
     /*
-    update_beta(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
-    update_mu(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, mu_prop_var, accept_mu);
-    update_sigSq(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, sigSq_prop_var, a_sigSq, b_sigSq, accept_sigSq);
+    AFT_LN_update_beta(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
+    AFT_LN_update_mu(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, mu_prop_var, accept_mu);
+    AFT_LN_update_sigSq(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, sigSq_prop_var, a_sigSq, b_sigSq, accept_sigSq);
     */
 
     move = (int) R::runif(0, 3); //for now, equal probability of each of the 3 moves.
 
     if(move == 0){
-      update_beta(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
+      AFT_LN_update_beta(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
     }
     if(move == 1){
-      update_mu(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, mu_prop_var, accept_mu);
+      AFT_LN_update_mu(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, mu_prop_var, accept_mu);
     }
     if(move == 2){
-      update_sigSq(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, sigSq_prop_var, a_sigSq, b_sigSq, accept_sigSq);
+      AFT_LN_update_sigSq(Wmat, wUInf, wLUeq, c0Inf, Xmat, beta, mu, sigSq, sigSq_prop_var, a_sigSq, b_sigSq, accept_sigSq);
     }
 
     /* Storing posterior samples */

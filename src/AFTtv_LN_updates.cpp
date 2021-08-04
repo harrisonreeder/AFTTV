@@ -4,7 +4,7 @@
 #include <ctime>
 // [[Rcpp::depends(RcppArmadillo)]]
 
-void update_beta(const arma::mat &Wmat,
+void AFTtv_LN_update_beta(const arma::mat &Wmat,
                  const arma::vec &wUInf,
                  const arma::vec &wLUeq,
                  const arma::vec &c0Inf,
@@ -82,7 +82,7 @@ void update_beta(const arma::mat &Wmat,
 }
 
 
-void update_mu(const arma::mat &Wmat,
+void AFTtv_LN_update_mu(const arma::mat &Wmat,
                const arma::vec &wUInf,
                const arma::vec &wLUeq,
                const arma::vec &c0Inf,
@@ -157,7 +157,7 @@ void update_mu(const arma::mat &Wmat,
 
 }
 
-void update_sigSq(const arma::mat &Wmat,
+void AFTtv_LN_update_sigSq(const arma::mat &Wmat,
                const arma::vec &wUInf,
                const arma::vec &wLUeq,
                const arma::vec &c0Inf,

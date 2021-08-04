@@ -1,5 +1,5 @@
 
-#' Bayesian Accelerated Failure Time Model with Percentile-varying Effects
+#' Bayesian Accelerated Failure Time Model
 #'
 #' @param Y a matrix with three columns: left end of interval, right end of interval, left truncation time
 #' @param Xmat
@@ -9,11 +9,11 @@
 #'
 #' @return
 #' @export
-BayesSurv_AFTtv <- function(Y,
-                     Xmat,
-                     hyperParams,
-                     startValues_vec,
-                     mcmcParams)
+BayesSurv_AFT2 <- function(Y,
+                           Xmat,
+                           hyperParams,
+                           startValues_vec,
+                           mcmcParams)
 {
   # browser()
   #this version only fits one chain, but we can get multiple chains
@@ -45,33 +45,44 @@ BayesSurv_AFTtv <- function(Y,
     stop("numReps * burninPerc  must be divisible by thin")
   }
 
-  yUInf <- rep(0, n)
-  for(i in 1:n) if(Y[i,2] == Inf)
+  W <- Y
+  W[,1] <- log(Y[,1])
+  W[,2] <- log(Y[,2])
+  W[,3] <- log(Y[,3])
+
+  for(i in 1:n) if(W[i,1] == -Inf)
   {
-    Y[i,2] <- 9.9e10
-    yUInf[i] <- 1
+    W[i,1] <- -9.9e10
   }
 
-  yLUeq <- as.numeric(Y[,1] == Y[,2])
+  wUInf <- rep(0, n)
+  for(i in 1:n) if(W[i,2] == Inf)
+  {
+    W[i,2] <- 9.9e10
+    wUInf[i] <- 1
+  }
+
+  wLUeq <- as.numeric(W[,1] == W[,2])
 
   c0Inf <- rep(0, n)
-  for(i in 1:n) if(Y[i,3] == 0)
+  for(i in 1:n) if(W[i,3] == -Inf)
   {
+    W[i,3] <- -9.9e10
     c0Inf[i] <- 1
   }
 
-  mcmcRet     <- AFTtv_LN_mcmc(
-                    Ymat        = Y,
-                    yUInf			  = yUInf,
-                    yLUeq			  = yLUeq,
-                    c0Inf			  = c0Inf,
-                    Xmat        = Xmat,
-                    hyperP      = hyperP,
-                    mcmcP       = mcmcP,
-                    startValues = startValues_vec,
-                    n_burnin		= n_burnin,
-                    n_sample		= n_sample,
-                    thin        = thin)
+  mcmcRet     <- AFT_LN_mcmc(
+    Wmat        = W,
+    wUInf			  = wUInf,
+    wLUeq			  = wLUeq,
+    c0Inf			  = c0Inf,
+    Xmat        = Xmat,
+    hyperP      = hyperP,
+    mcmcP       = mcmcP,
+    startValues = startValues_vec,
+    n_burnin		= n_burnin,
+    n_sample		= n_sample,
+    thin        = thin)
   return(mcmcRet)
 
   # w.p <- matrix(as.vector(mcmcRet$samples_w), nrow=nStore, byrow=T)
@@ -102,3 +113,4 @@ BayesSurv_AFTtv <- function(Y,
   # class(ret) <- "BAFTtv"
   # return(ret)
 }
+

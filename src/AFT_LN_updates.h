@@ -1,7 +1,7 @@
-#ifndef AFTtv_updates_H
-#define AFTtv_updates_H
+#ifndef AFT_LN_updates_H
+#define AFT_LN_updates_H
 
-void update_beta(const arma::mat &Wmat,
+void AFT_LN_update_beta(const arma::mat &Wmat,
                  const arma::vec &wUInf,
                  const arma::vec &wLUeq,
                  const arma::vec &c0Inf,
@@ -12,7 +12,7 @@ void update_beta(const arma::mat &Wmat,
                  double &beta_prop_var,
                  arma::vec &accept_beta);
 
-void update_mu(const arma::mat &Wmat,
+void AFT_LN_update_mu(const arma::mat &Wmat,
                const arma::vec &wUInf,
                const arma::vec &wLUeq,
                const arma::vec &c0Inf,
@@ -23,7 +23,7 @@ void update_mu(const arma::mat &Wmat,
                double &mu_prop_var,
                int &accept_mu);
 
-void update_sigSq(const arma::mat &Wmat,
+void AFT_LN_update_sigSq(const arma::mat &Wmat,
                const arma::vec &wUInf,
                const arma::vec &wLUeq,
                const arma::vec &c0Inf,
