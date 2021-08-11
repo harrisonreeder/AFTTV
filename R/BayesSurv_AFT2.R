@@ -1,13 +1,13 @@
 
 #' Bayesian Accelerated Failure Time Model
 #'
-#' @param Y a matrix with three columns: left end of interval, right end of interval, left truncation time
-#' @param Xmat
-#' @param hyperParams
-#' @param startValues
-#' @param mcmcParams
+#' @param Y an n by 3 matrix with columns: left end of interval, right end of interval, left truncation time
+#' @param Xmat an n by p matrix of covariates
+#' @param hyperParams a list of hyperparameters (based on SemiCompRisks for now)
+#' @param startValues a vector of starting values for the parameters
+#' @param mcmcParams a list of mcmc tuning parameters (based on SemiCompRisks for now)
 #'
-#' @return
+#' @return a list with outputs
 #' @export
 BayesSurv_AFT2 <- function(Y,
                            Xmat,

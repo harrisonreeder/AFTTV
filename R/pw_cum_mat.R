@@ -6,6 +6,7 @@
 #'
 #' @param y vector of event times.
 #' @param knots increasing vector of cutpoints. If it does not start with 0, one will be appended to the start.
+#'   However, it should not include Inf at the end.
 #' @param intercept if true, includes column corresponding with 'first' interval, and if false does not.
 #'   It makes sense to include an intercept if the time-varying covariate is not also included in the "baseline",
 #'   otherwise, there would be an identifiability issue.
@@ -14,6 +15,7 @@
 #' @export
 pw_cum_mat <- function(y, knots, intercept=TRUE){
   if(knots[1] != 0){knots <- c(0,knots)}
+  #vector giving the length of the intervals between each knot
   knots_diff <- diff(knots)
   #count of the number of intervals in each list
   num_int <- c(length(knots))
