@@ -77,26 +77,28 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
   arma::vec logVyL = Vx_pw(Ymat.col(0), Xmat, beta, Xvec_tv, beta_tv, knots, 1);
   arma::vec logVyU = Vx_pw(Ymat.col(1), Xmat, beta, Xvec_tv, beta_tv, knots, 1);
   arma::vec logVc0 = Vx_pw(Ymat.col(2), Xmat, beta, Xvec_tv, beta_tv, knots, 1);
+  //initialize v(t) values for yL (only used when observation is exactly observed)
+  arma::vec logvyL = vx_pw(Ymat.col(0), Xmat, beta, Xvec_tv, beta_tv, knots, 1);
 
 //  Rcpp::Rcout << "initial logVyL: " << logVyL(arma::span(0,10)) << "\n";
 
   for(M = 0; M < n_iter; M++){
 //    Rcpp::Rcout << "iteration: " << M << "\n";
 
-    AFTtv_LN_update_mu(logVyL, logVyU, logVc0,
+    AFTtv_LN_update_mu(logVyL, logVyU, logVc0, logvyL,
                        yUInf, yLUeq, c0Inf,
                        mu, sigSq, mu_prop_var, accept_mu);
 //    Rcpp::Rcout << "updated mu: " << mu << "\n";
-    AFTtv_LN_update_sigSq(logVyL, logVyU, logVc0,
+    AFTtv_LN_update_sigSq(logVyL, logVyU, logVc0, logvyL,
                           yUInf, yLUeq, c0Inf,
                           mu, sigSq, sigSq_prop_var,
                           a_sigSq, b_sigSq, accept_sigSq);
 //    Rcpp::Rcout << "updated sigSq: " << sigSq << "\n";
-    AFTtv_LN_update_beta(logVyL, logVyU, logVc0,
+    AFTtv_LN_update_beta(logVyL, logVyU, logVc0, logvyL,
                          yUInf, yLUeq, c0Inf,
                          Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
 //    Rcpp::Rcout << "updated beta: " << beta.t() << "\n";
-    AFTtv_LN_update_btv(Ymat, logVyL, logVyU, logVc0,
+    AFTtv_LN_update_btv(Ymat, logVyL, logVyU, logVc0, logvyL,
                          yUInf, yLUeq, c0Inf,
                          Xmat, beta, Xvec_tv, beta_tv,
                          mu, sigSq, knots, btv_prop_var, accept_btv);

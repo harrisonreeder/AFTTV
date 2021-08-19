@@ -10,6 +10,50 @@ double logsumexp(double x,double y){
 }
 
 
+
+arma::vec v0x_pw(const arma::vec &T,
+                 const arma::vec &Xvec_tv,
+                 const arma::vec &beta_tv,
+                 const arma::vec &knots,
+                 const int log_out){
+  int n = T.n_rows;
+  int i; //indices for nested for-loops
+  int ind; //index
+  arma::vec out(n);
+
+  for(i = 0; i < n; i++){ //for each observation, find the value of v at that time
+    ind = 0;
+    while(T(i) >= knots(ind)){ //should this be equal to or just greater than??
+      ind++;
+    }
+    out(i) = - Xvec_tv(i) * beta_tv(ind); //initialize to v of interval
+  }
+  if(log_out == 0){
+    out = arma::exp(out);
+  }
+  return out;
+}
+
+arma::vec vx_pw(const arma::vec &T,
+                const arma::mat &Xmat,
+                const arma::vec &beta,
+                const arma::vec &Xvec_tv,
+                const arma::vec &beta_tv,
+                const arma::vec &knots,
+                const int log_out){
+  arma::vec out = v0x_pw(T,Xvec_tv,beta_tv,knots,log_out);
+  arma::vec xbeta = Xmat * beta;
+  if(log_out == 1){
+    out = out - xbeta; // subtract time-invariant linear predictor
+  } else{
+    out = out % arma::exp(-xbeta); // multiply exponentiated time-invariant linear predictor
+  }
+  return out;
+}
+
+
+
+
 arma::vec V0x_pw(const arma::vec &T,
                 const arma::vec &Xvec_tv,
                 const arma::vec &beta_tv,
@@ -72,30 +116,6 @@ arma::vec V0x_pw(const arma::vec &T,
 
 }
 
-arma::vec v0x_pw(const arma::vec &T,
-                 const arma::vec &Xvec_tv,
-                 const arma::vec &beta_tv,
-                 const arma::vec &knots,
-                 const int log_out){
-  int n = T.n_rows;
-  int K = knots.n_rows; //check this!! and come up with rules for representation of knots
-  int i,k; //indices for nested for-loops
-  int ind; //index
-  arma::vec out(n);
-
-  for(i = 0; i < n; i++){ //for each observation, find the value of v at that time
-    ind = 0;
-    while(T(i) >= knots(ind)){ //should this be equal to or just greater than??
-      ind++;
-    }
-    out(i) = - Xvec_tv(i) * beta_tv(ind); //initialize to v of first interval
-  }
-  if(log_out == 0){
-    out = arma::exp(out);
-  }
-  return out;
-}
-
 // [[Rcpp::export]]
 arma::vec Vx_pw(const arma::vec &T,
         const arma::mat &Xmat,
@@ -118,6 +138,7 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
                           arma::vec &logVyL,
                           arma::vec &logVyU,
                           arma::vec &logVc0,
+                          arma::vec &logvyL,
                           const arma::vec &yUInf,
                           const arma::vec &yLUeq,
                           const arma::vec &c0Inf,
@@ -154,6 +175,8 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
   arma::vec logVyU_prop = Vx_pw(Ymat.col(1), Xmat, beta, Xvec_tv, beta_tv_prop, knots,1);
   arma::vec logVc0_prop = Vx_pw(Ymat.col(2), Xmat, beta, Xvec_tv, beta_tv_prop, knots,1);
 
+  arma::vec logvyL_prop = vx_pw(Ymat.col(0), Xmat, beta, Xvec_tv, beta_tv_prop, knots,1);
+
   /* my problem is that the parameters for later intervals are flying off into space
   if(j>0){
     Rcpp::Rcout << "j : " << j ;
@@ -165,8 +188,10 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
 
   for(i = 0; i < n; i++){
     if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq));
-      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq));
+      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
+                    - logVyL(i) + logvyL(i);
+      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq))
+                    - logVyL_prop(i) + logvyL_prop(i);
     } else if(yUInf(i)==1) { //right censoring, so use log survival
       loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
       loglh_prop += log1p(-arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)));
@@ -187,12 +212,13 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
   //if we add a prior of some kind, it should go here...
   // here is a basic random walk prior, where the prior is centered at the previous value
   // I've just picked a default scale of 1 for the moment
+  /*
    if(j>0){
    logprior = arma::log_normpdf(beta_tv(j), beta_tv(j-1), 1.0);
    logprior_prop = arma::log_normpdf(beta_tv_prop(j), beta_tv(j-1), 1.0);
    logR += logprior_prop - logprior;
    }
-
+  */
 
   //Rcpp::Rcout << "beta_tvj acceptance ratio: " << exp(logR) << "\n";
 
@@ -202,6 +228,7 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
     logVyL = logVyL_prop;
     logVyU = logVyU_prop;
     logVc0 = logVc0_prop;
+    logvyL = logvyL_prop;
     accept_btv(j) += 1;
   }
   return;
@@ -210,6 +237,7 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
 void AFTtv_LN_update_beta(arma::vec &logVyL,
                           arma::vec &logVyU,
                           arma::vec &logVc0,
+                          arma::vec &logvyL,
                           const arma::vec &yUInf,
                           const arma::vec &yLUeq,
                           const arma::vec &c0Inf,
@@ -236,11 +264,14 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
   arma::vec logVyL_prop = logVyL + xbetaj_propdiff;
   arma::vec logVyU_prop = logVyU + xbetaj_propdiff;
   arma::vec logVc0_prop = logVc0 + xbetaj_propdiff;
+  arma::vec logvyL_prop = logvyL + xbetaj_propdiff;
 
   for(i = 0; i < n; i++){
     if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq));
-      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq));
+      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
+                    - logVyL(i) + logvyL(i);
+      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq))
+                    - logVyL_prop(i) + logvyL_prop(i);
     } else if(yUInf(i)==1) { //right censoring, so use log survival
       loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
       loglh_prop += log1p(-arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)));
@@ -270,6 +301,7 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
     logVyL = logVyL_prop;
     logVyU = logVyU_prop;
     logVc0 = logVc0_prop;
+    logvyL = logvyL_prop;
     accept_beta(j) += 1;
   }
   return;
@@ -278,6 +310,7 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
 void AFTtv_LN_update_mu(const arma::vec &logVyL,
                         const arma::vec &logVyU,
                         const arma::vec &logVc0,
+                        const arma::vec &logvyL,
                         const arma::vec &yUInf,
                         const arma::vec &yLUeq,
                         const arma::vec &c0Inf,
@@ -304,8 +337,10 @@ void AFTtv_LN_update_mu(const arma::vec &logVyL,
      * right censoring (right is infinite): compute survivor function at left, ll is that
      * no censoring (left and right equal): compute log density, ll is that */
     if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq));
-      loglh_prop += arma::log_normpdf(logVyL(i), mu_prop, sqrt(sigSq));
+      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
+                    - logVyL(i) + logvyL(i); //note this will actually cancel out with the proposal version, but for completeness let's keep it
+      loglh_prop += arma::log_normpdf(logVyL(i), mu_prop, sqrt(sigSq))
+                    - logVyL(i) + logvyL(i);
     } else if(yUInf(i)==1) { //right censoring, so use log survival
       loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
       loglh_prop += log1p(-arma::normcdf(logVyL(i), mu_prop, sqrt(sigSq)));
@@ -342,6 +377,7 @@ void AFTtv_LN_update_mu(const arma::vec &logVyL,
 void AFTtv_LN_update_sigSq(const arma::vec &logVyL,
                            const arma::vec &logVyU,
                            const arma::vec &logVc0,
+                           const arma::vec &logvyL,
                            const arma::vec &yUInf,
                            const arma::vec &yLUeq,
                            const arma::vec &c0Inf,
@@ -362,8 +398,10 @@ void AFTtv_LN_update_sigSq(const arma::vec &logVyL,
 
   for(i = 0; i < n; i++){
     if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq));
-      loglh_prop += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq_prop));
+      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
+                    - logVyL(i) + logvyL(i);
+      loglh_prop += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq_prop))
+                    - logVyL(i) + logvyL(i);
     } else if(yUInf(i)==1) { //right censoring, so use log survival
       loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
       loglh_prop += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq_prop)));
@@ -386,7 +424,6 @@ void AFTtv_LN_update_sigSq(const arma::vec &logVyL,
 
   //Last "log(sigSq_prop) - log(sigSq)" is the "jacobian" because we sample on transformed scale
   //I think because we put prior on sigSq, but then sample log(sigSq), so we need to add jacobian
-
   logR = loglh_prop - loglh + logprior_prop - logprior + log(sigSq_prop) - log(sigSq);
   u = log(R::runif(0, 1)) < logR;
   if(u == 1){
