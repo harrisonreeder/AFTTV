@@ -4,15 +4,31 @@
 \alias{BayesSurv_AFTtv}
 \title{Bayesian Accelerated Failure Time Model with Percentile-varying Effects}
 \usage{
-BayesSurv_AFTtv(Y, Xmat, hyperParams, startValues_vec, mcmcParams)
+BayesSurv_AFTtv(
+  Y,
+  Xmat,
+  Xvec_tv,
+  hyperParams,
+  knots,
+  startValues_vec,
+  mcmcParams
+)
 }
 \arguments{
-\item{Y}{a matrix with three columns: left end of interval, right end of interval, left truncation time}
+\item{Y}{an n by 3 matrix with columns: left end of interval, right end of interval, left truncation time}
 
-\item{mcmcParams}{}
+\item{Xmat}{an n by p matrix of covariates}
+
+\item{Xvec_tv}{an n-length vector with the covariate having a time-varying effect}
+
+\item{hyperParams}{a list of hyperparameters (based on SemiCompRisks for now)}
+
+\item{mcmcParams}{a list of mcmc tuning parameters (based on SemiCompRisks for now)}
+
+\item{startValues}{a vector of starting values for the parameters}
 }
 \value{
-
+a list with outputs
 }
 \description{
 Bayesian Accelerated Failure Time Model with Percentile-varying Effects

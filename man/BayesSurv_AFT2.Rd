@@ -7,12 +7,18 @@
 BayesSurv_AFT2(Y, Xmat, hyperParams, startValues_vec, mcmcParams)
 }
 \arguments{
-\item{Y}{a matrix with three columns: left end of interval, right end of interval, left truncation time}
+\item{Y}{an n by 3 matrix with columns: left end of interval, right end of interval, left truncation time}
 
-\item{mcmcParams}{}
+\item{Xmat}{an n by p matrix of covariates}
+
+\item{hyperParams}{a list of hyperparameters (based on SemiCompRisks for now)}
+
+\item{mcmcParams}{a list of mcmc tuning parameters (based on SemiCompRisks for now)}
+
+\item{startValues}{a vector of starting values for the parameters}
 }
 \value{
-
+a list with outputs
 }
 \description{
 Bayesian Accelerated Failure Time Model

@@ -1,20 +1,22 @@
 
 #' Bayesian Accelerated Failure Time Model with Percentile-varying Effects
 #'
-#' @param Y a matrix with three columns: left end of interval, right end of interval, left truncation time
-#' @param Xmat
-#' @param hyperParams
-#' @param startValues
-#' @param mcmcParams
+#' @param Y an n by 3 matrix with columns: left end of interval, right end of interval, left truncation time
+#' @param Xmat an n by p matrix of covariates
+#' @param Xvec_tv an n-length vector with the covariate having a time-varying effect
+#' @param hyperParams a list of hyperparameters (based on SemiCompRisks for now)
+#' @param startValues a vector of starting values for the parameters
+#' @param mcmcParams a list of mcmc tuning parameters (based on SemiCompRisks for now)
 #'
-#' @return
+#' @return a list with outputs
 #' @export
 BayesSurv_AFTtv <- function(Y,
                      Xmat,
+                     Xvec_tv,
                      hyperParams,
+                     knots,
                      startValues_vec,
-                     mcmcParams)
-{
+                     mcmcParams){
   # browser()
   #this version only fits one chain, but we can get multiple chains
   #by externally running twice?
@@ -26,11 +28,16 @@ BayesSurv_AFTtv <- function(Y,
   # hyperP  <- as.vector(c(hyperParams$LN$a.sigSq, hyperParams$LN$b.sigSq#,
   #                        # hyperParams$LN$mu0,hyperParams$LN$h0
   #                        ))
-  hyperP <- hyperParams$LN$LN.ab
-  #NOTE I'M RETROFITTING THE WORD 'ZETA' HERE BUT WILL CHANGE
-  mcmcP   <- as.vector(c(mcmcParams$tuning$beta.prop.var,
-                         mcmcParams$tuning$mu.prop.var,
-                         mcmcParams$tuning$zeta.prop.var)) #should be sigSq
+  hyperP <- c(
+    hyperParams$LN$LN.ab #hyperparameters for inv-gamma prior on sigSq
+  )
+
+  stopifnot(knots[1] != 0) #first knot should not be zero, per our formulation
+
+  ### #NOTE I'M RETROFITTING THE WORD 'ZETA' HERE BUT WILL CHANGE
+  # mcmcP   <- as.vector(c(mcmcParams$tuning$beta.prop.var,
+  #                        mcmcParams$tuning$mu.prop.var,
+  #                        mcmcParams$tuning$zeta.prop.var)) #should be sigSq
 
   numReps     <- mcmcParams$run$numReps
   thin        <- mcmcParams$run$thin
@@ -66,8 +73,13 @@ BayesSurv_AFTtv <- function(Y,
                     yLUeq			  = yLUeq,
                     c0Inf			  = c0Inf,
                     Xmat        = Xmat,
+                    Xvec_tv     = Xvec_tv,
                     hyperP      = hyperP,
-                    mcmcP       = mcmcP,
+                    beta_prop_var = mcmcParams$tuning$beta.prop.var,
+                    btv_prop_var = mcmcParams$tuning$beta.prop.var, #notice I'm double-dipping with beta for now
+                    mu_prop_var = mcmcParams$tuning$mu.prop.var,
+                    sigSq_prop_var = mcmcParams$tuning$zeta.prop.var, #should be called 'sigSq', I'm retrofitting for now
+                    knots_init  = knots,
                     startValues = startValues_vec,
                     n_burnin		= n_burnin,
                     n_sample		= n_sample,
