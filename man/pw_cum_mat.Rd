@@ -9,7 +9,8 @@ pw_cum_mat(y, knots, intercept = TRUE)
 \arguments{
 \item{y}{vector of event times.}
 
-\item{knots}{increasing vector of cutpoints. If it does not start with 0, one will be appended to the start.}
+\item{knots}{increasing vector of cutpoints. If it does not start with 0, one will be appended to the start.
+However, it should not include Inf at the end.}
 
 \item{intercept}{if true, includes column corresponding with 'first' interval, and if false does not.
 It makes sense to include an intercept if the time-varying covariate is not also included in the "baseline",

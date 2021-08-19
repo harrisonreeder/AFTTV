@@ -24,7 +24,7 @@ nll_AFTtv <- function (para, y, delta, x_base, x_tv, baseline = "weibull", basis
   } else{
     nP_tv <- if(is.null(basis)) 1 else ncol(basis)
   }
-  nP0 <- if(tolower(baseline)=="weibull") 2 else 0
+  nP0 <- if(tolower(baseline) %in% c("weibull","lognormal")) 2 else 0
   nP_tot <- nP_base + nP_tv + nP0
   stopifnot(length(para) == nP_tot)
 
@@ -50,7 +50,13 @@ nll_AFTtv <- function (para, y, delta, x_base, x_tv, baseline = "weibull", basis
                                   lower.tail = FALSE, log.p = TRUE)}
     logh0 <- function(x){flexsurv::hweibull(x=x,scale = exp(intercept_temp),
                                             shape = exp(logsigma_temp), log = TRUE)}
-  } else{ stop("only weibull model for now...")}
+  } else if(tolower(baseline)=="lognormal"){
+    logS0 <- function(x){stats::plnorm(q=x, meanlog = intercept_temp,
+                                         sdlog = exp(logsigma_temp),
+                                         lower.tail = FALSE, log.p = TRUE)}
+    logh0 <- function(x){log(flexsurv::hlnorm(x=x, meanlog = intercept_temp,
+                                            sdlog = exp(logsigma_temp)))} #logging manually bc of a bug in flexsurv for now
+  }
 
   if(tolower(tv_type)=="baseline"){
     xbeta_m_temp <- 0
