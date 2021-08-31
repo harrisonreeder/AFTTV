@@ -16,6 +16,8 @@ arma::vec v0x_pw(const arma::vec &T,
                  const arma::vec &beta_tv,
                  const arma::vec &knots,
                  const int log_out){
+  // this function evaluates the v0 function, v0(t) = exp(-Xbeta(t))
+
   int n = T.n_rows;
   int i; //indices for nested for-loops
   int ind; //index
@@ -41,6 +43,8 @@ arma::vec vx_pw(const arma::vec &T,
                 const arma::vec &beta_tv,
                 const arma::vec &knots,
                 const int log_out){
+  // this function evaluates the v function, v0(t) = exp(Xbeta - Xbeta(t))
+
   arma::vec out = v0x_pw(T,Xvec_tv,beta_tv,knots,log_out);
   arma::vec xbeta = Xmat * beta;
   if(log_out == 1){
@@ -59,6 +63,7 @@ arma::vec V0x_pw(const arma::vec &T,
                 const arma::vec &beta_tv,
                 const arma::vec &knots,
                 const int log_out){
+  // this function evaluates the V0 function, V0(t) = int_0^t exp(-Xbeta(u)) du
 
   int n = T.n_rows;
   int K = knots.n_rows; //check this!! and come up with rules for representation of knots
@@ -124,6 +129,8 @@ arma::vec Vx_pw(const arma::vec &T,
         const arma::vec &beta_tv,
         const arma::vec &knots,
         const int log_out){
+  // this function evaluates the V function, V(t) = int_0^t exp(-Xbeta - Xbeta(u)) du
+
   arma::vec out = V0x_pw(T,Xvec_tv,beta_tv,knots,log_out);
   arma::vec xbeta = Xmat * beta;
   if(log_out == 1){
