@@ -27,6 +27,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// AFTtv_LN_rjmcmc
+Rcpp::List AFTtv_LN_rjmcmc(const arma::mat& Ymat, const arma::vec& yUInf, const arma::vec& yLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& Xvec_tv, const arma::vec& hyperP, double beta_prop_var, double btv_prop_var, double mu_prop_var, double sigSq_prop_var, const arma::vec& knots_init, const arma::vec& startValues, int n_burnin, int n_sample, int thin);
+RcppExport SEXP _AFTTV_AFTtv_LN_rjmcmc(SEXP YmatSEXP, SEXP yUInfSEXP, SEXP yLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP Xvec_tvSEXP, SEXP hyperPSEXP, SEXP beta_prop_varSEXP, SEXP btv_prop_varSEXP, SEXP mu_prop_varSEXP, SEXP sigSq_prop_varSEXP, SEXP knots_initSEXP, SEXP startValuesSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Ymat(YmatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type yUInf(yUInfSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type yLUeq(yLUeqSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type c0Inf(c0InfSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Xmat(XmatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Xvec_tv(Xvec_tvSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hyperP(hyperPSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_prop_var(beta_prop_varSEXP);
+    Rcpp::traits::input_parameter< double >::type btv_prop_var(btv_prop_varSEXP);
+    Rcpp::traits::input_parameter< double >::type mu_prop_var(mu_prop_varSEXP);
+    Rcpp::traits::input_parameter< double >::type sigSq_prop_var(sigSq_prop_varSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots_init(knots_initSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type startValues(startValuesSEXP);
+    Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
+    Rcpp::traits::input_parameter< int >::type n_sample(n_sampleSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    rcpp_result_gen = Rcpp::wrap(AFTtv_LN_rjmcmc(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, hyperP, beta_prop_var, btv_prop_var, mu_prop_var, sigSq_prop_var, knots_init, startValues, n_burnin, n_sample, thin));
+    return rcpp_result_gen;
+END_RCPP
+}
 // AFTtv_LN_mcmc
 Rcpp::List AFTtv_LN_mcmc(const arma::mat& Ymat, const arma::vec& yUInf, const arma::vec& yLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& Xvec_tv, const arma::vec& hyperP, double beta_prop_var, double btv_prop_var, double mu_prop_var, double sigSq_prop_var, const arma::vec& knots_init, const arma::vec& startValues, int n_burnin, int n_sample, int thin);
 RcppExport SEXP _AFTTV_AFTtv_LN_mcmc(SEXP YmatSEXP, SEXP yUInfSEXP, SEXP yLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP Xvec_tvSEXP, SEXP hyperPSEXP, SEXP beta_prop_varSEXP, SEXP btv_prop_varSEXP, SEXP mu_prop_varSEXP, SEXP sigSq_prop_varSEXP, SEXP knots_initSEXP, SEXP startValuesSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
@@ -53,6 +79,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dmvnrm_arma
+double dmvnrm_arma(const arma::vec& x, double& mean, double& var, const arma::mat& cholinvSigma_sub, int logd);
+RcppExport SEXP _AFTTV_dmvnrm_arma(SEXP xSEXP, SEXP meanSEXP, SEXP varSEXP, SEXP cholinvSigma_subSEXP, SEXP logdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double& >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double& >::type var(varSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type cholinvSigma_sub(cholinvSigma_subSEXP);
+    Rcpp::traits::input_parameter< int >::type logd(logdSEXP);
+    rcpp_result_gen = Rcpp::wrap(dmvnrm_arma(x, mean, var, cholinvSigma_sub, logd));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Vx_pw
 arma::vec Vx_pw(const arma::vec& T, const arma::mat& Xmat, const arma::vec& beta, const arma::vec& Xvec_tv, const arma::vec& beta_tv, const arma::vec& knots, const int log_out);
 RcppExport SEXP _AFTTV_Vx_pw(SEXP TSEXP, SEXP XmatSEXP, SEXP betaSEXP, SEXP Xvec_tvSEXP, SEXP beta_tvSEXP, SEXP knotsSEXP, SEXP log_outSEXP) {
@@ -73,7 +114,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_AFTTV_AFT_LN_mcmc", (DL_FUNC) &_AFTTV_AFT_LN_mcmc, 11},
+    {"_AFTTV_AFTtv_LN_rjmcmc", (DL_FUNC) &_AFTTV_AFTtv_LN_rjmcmc, 16},
     {"_AFTTV_AFTtv_LN_mcmc", (DL_FUNC) &_AFTTV_AFTtv_LN_mcmc, 16},
+    {"_AFTTV_dmvnrm_arma", (DL_FUNC) &_AFTTV_dmvnrm_arma, 5},
     {"_AFTTV_Vx_pw", (DL_FUNC) &_AFTTV_Vx_pw, 7},
     {NULL, NULL, 0}
 };

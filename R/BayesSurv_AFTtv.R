@@ -29,7 +29,8 @@ BayesSurv_AFTtv <- function(Y,
   #                        # hyperParams$LN$mu0,hyperParams$LN$h0
   #                        ))
   hyperP <- c(
-    hyperParams$LN$LN.ab #hyperparameters for inv-gamma prior on sigSq
+    hyperParams$LN$LN.ab, #hyperparameters for inv-gamma prior on sigSq
+    hyperParams$LN$btv.ab #hyperparameters for gamma prior on 1/varbtv
   )
 
   stopifnot(knots[1] != 0) #first knot should not be zero, per our formulation
@@ -67,7 +68,8 @@ BayesSurv_AFTtv <- function(Y,
     c0Inf[i] <- 1
   }
 
-  mcmcRet     <- AFTtv_LN_mcmc(
+# mcmcRet     <- AFTtv_LN_mcmc( #for now, set this aside so I can test my rj version
+  mcmcRet     <- AFTtv_LN_rjmcmc(
                     Ymat        = Y,
                     yUInf			  = yUInf,
                     yLUeq			  = yLUeq,
