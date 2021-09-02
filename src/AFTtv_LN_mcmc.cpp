@@ -15,14 +15,21 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
                          const arma::vec &c0Inf,
                          const arma::mat &Xmat,
                          const arma::vec &Xvec_tv,
-                         Rcpp::List prior_list_num,
-                         Rcpp::List hyper_list,
-                         Rcpp::List tuning_list,
-                         Rcpp::List start_list,
+                         const arma::vec &prior_vec_num,
+                         const arma::vec &hyper_vec,
+                         const arma::vec &tuning_vec,
+                         const arma::vec &start_vec,
                          const arma::vec &knots_init,
                          int n_burnin,
                          int n_sample,
                          int thin){
+
+  // Rcpp::List prior_list_num,
+  // Rcpp::List hyper_list,
+  // Rcpp::List tuning_list,
+  // Rcpp::List start_list,
+
+
   //timekeeping objects
   std::time_t newt;
 
@@ -38,20 +45,27 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
 
 
   //SET PRIOR CODES
-  int sigSq_prior = prior_list_num["sigSq"];
-  int btv_prior = prior_list_num["beta_tv"];
+  int sigSq_prior = prior_vec_num(1);
+  int btv_prior = prior_vec_num(3);
+  // int sigSq_prior = prior_list_num["sigSq"];
+  // int btv_prior = prior_list_num["beta_tv"];
 
   //Rcpp::Rcout << "finished setting prior codes" << "\n";
 
 
   //SET MCMC TUNING PARAMETERS
+  double mu_prop_var = tuning_vec(0); //might throw an error
+  double sigSq_prop_var = tuning_vec(1); //might throw an error
+  double beta_prop_var = tuning_vec(2); //might throw an error
+  double btv_prop_var = tuning_vec(3); //might throw an error
+  int K_max = tuning_vec(4); //maximum number of distinct piecewise intervals
 
-  double mu_prop_var = tuning_list["mu"]; //might throw an error
-  double sigSq_prop_var = tuning_list["sigSq"]; //might throw an error
-  double beta_prop_var = tuning_list["beta"]; //might throw an error
-  Rcpp::NumericVector btv_tuning = tuning_list["beta_tv"];
-  double btv_prop_var = btv_tuning[0]; //might throw an error
-  int K_max = btv_tuning[1]; //maximum number of distinct piecewise intervals
+  // double mu_prop_var = tuning_list["mu"]; //might throw an error
+  // double sigSq_prop_var = tuning_list["sigSq"]; //might throw an error
+  // double beta_prop_var = tuning_list["beta"]; //might throw an error
+  // Rcpp::NumericVector btv_tuning = tuning_list["beta_tv"];
+  // double btv_prop_var = btv_tuning[0]; //might throw an error
+  // int K_max = btv_tuning[1]; //maximum number of distinct piecewise intervals
 
   //Rcpp::Rcout << "finished setting MCMC tuning params" << "\n";
 
@@ -62,9 +76,11 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
   //gamma prior for lognormal sigSq
   double a_sigSq, b_sigSq;
   if(sigSq_prior==1){
-    Rcpp::NumericVector sigSq_hyper = hyper_list["sigSq"];
-    a_sigSq = sigSq_hyper[0];
-    b_sigSq = sigSq_hyper[1];
+    a_sigSq = hyper_vec(0);
+    a_sigSq = hyper_vec(1);
+    // Rcpp::NumericVector sigSq_hyper = hyper_list["sigSq"];
+    // a_sigSq = sigSq_hyper[0];
+    // b_sigSq = sigSq_hyper[1];
   }
 
   //mvn-icar prior for btv
@@ -77,9 +93,11 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
   if(btv_prior==2){
     //flat hyperprior on mean for mean_btv
     //gamma hyperprior for var_btv
-    Rcpp::NumericVector btv_hyper = hyper_list["beta_tv"];
-    a_btv = btv_hyper[0];
-    b_btv = btv_hyper[1];
+    a_btv = hyper_vec(2); //(This assumes that there is also an inv-gamma prior on sigSq, indexwise)
+    b_btv = hyper_vec(3);
+    // Rcpp::NumericVector btv_hyper = hyper_list["beta_tv"];
+    // a_btv = btv_hyper[0];
+    // b_btv = btv_hyper[1];
     //hyperparameter for dependence of time-varying beta coefficients
     c_btv = 1;
 
@@ -87,8 +105,10 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
     update_icar_mats(invSigma_btv, cholinvSigma_btv, IminusW, Qvec, knots_init, c_btv, K);
 
     //initialize hyperparameters
-    meanbtv = start_list["meanbtv"];
-    varbtv = start_list["varbtv"];
+    meanbtv = start_vec[2+p+K];
+    varbtv = start_vec[3+p+K];
+    // meanbtv = start_list["meanbtv"];
+    // varbtv = start_list["varbtv"];
   }
 
   /* manually set random scan probabilities
@@ -108,10 +128,15 @@ Rcpp::List AFTtv_LN_mcmc(const arma::mat &Ymat,
 
 
   //initialize starting values
-  double mu = start_list["mu"];
-  double sigSq = start_list["sigSq"];
-  arma::vec beta = start_list["beta"]; //TODO: what if there are no betas
-  arma::vec beta_tv = start_list["beta_tv"];
+  double mu = start_vec(0);
+  double sigSq = start_vec(1);
+  arma::vec beta = start_vec(arma::span(2,1+p)); //TODO: what if there are no betas
+  arma::vec beta_tv = start_vec(arma::span(2+p,1+p+K));
+  // double mu = start_list["mu"];
+  // double sigSq = start_list["sigSq"];
+  // arma::vec beta = start_list["beta"]; //TODO: what if there are no betas
+  // arma::vec beta_tv = start_list["beta_tv"];
+
   arma::vec knots = knots_init;
 
   /* //next, we'll add these changing dimensional things:

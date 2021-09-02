@@ -28,8 +28,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // AFTtv_LN_mcmc
-Rcpp::List AFTtv_LN_mcmc(const arma::mat& Ymat, const arma::vec& yUInf, const arma::vec& yLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& Xvec_tv, Rcpp::List prior_list_num, Rcpp::List hyper_list, Rcpp::List tuning_list, Rcpp::List start_list, const arma::vec& knots_init, int n_burnin, int n_sample, int thin);
-RcppExport SEXP _AFTTV_AFTtv_LN_mcmc(SEXP YmatSEXP, SEXP yUInfSEXP, SEXP yLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP Xvec_tvSEXP, SEXP prior_list_numSEXP, SEXP hyper_listSEXP, SEXP tuning_listSEXP, SEXP start_listSEXP, SEXP knots_initSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
+Rcpp::List AFTtv_LN_mcmc(const arma::mat& Ymat, const arma::vec& yUInf, const arma::vec& yLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& Xvec_tv, const arma::vec& prior_vec_num, const arma::vec& hyper_vec, const arma::vec& tuning_vec, const arma::vec& start_vec, const arma::vec& knots_init, int n_burnin, int n_sample, int thin);
+RcppExport SEXP _AFTTV_AFTtv_LN_mcmc(SEXP YmatSEXP, SEXP yUInfSEXP, SEXP yLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP Xvec_tvSEXP, SEXP prior_vec_numSEXP, SEXP hyper_vecSEXP, SEXP tuning_vecSEXP, SEXP start_vecSEXP, SEXP knots_initSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,15 +39,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type c0Inf(c0InfSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Xmat(XmatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type Xvec_tv(Xvec_tvSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type prior_list_num(prior_list_numSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type hyper_list(hyper_listSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type tuning_list(tuning_listSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type start_list(start_listSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_vec_num(prior_vec_numSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hyper_vec(hyper_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tuning_vec(tuning_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type start_vec(start_vecSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type knots_init(knots_initSEXP);
     Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
     Rcpp::traits::input_parameter< int >::type n_sample(n_sampleSEXP);
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
-    rcpp_result_gen = Rcpp::wrap(AFTtv_LN_mcmc(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_list_num, hyper_list, tuning_list, start_list, knots_init, n_burnin, n_sample, thin));
+    rcpp_result_gen = Rcpp::wrap(AFTtv_LN_mcmc(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin));
     return rcpp_result_gen;
 END_RCPP
 }

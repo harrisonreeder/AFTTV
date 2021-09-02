@@ -4,7 +4,7 @@
 #' @param Xmat an n by p matrix of covariates
 #' @param Xvec_tv an n-length vector with the covariate having a time-varying effect
 #' @param prior_list a list of priors being used
-#' @param tuning_list a list of tuning parameters
+#' @param tuning_vec a vec of tuning parameters
 #' @param hyper_list a list of hyperparameters
 #' @param knots a vector of knots (doesn't start with 0, does end with maximum time)
 #' @param numReps numeric total number of iterations
@@ -19,7 +19,8 @@ BayesSurv_AFTtv <- function(Y,
                 Xmat,
                 Xvec_tv,
                 prior_list,
-                tuning_list,
+                tuning_vec,
+                # tuning_list,
                 hyper_list,
                 knots,
                 numReps,
@@ -53,6 +54,13 @@ BayesSurv_AFTtv <- function(Y,
   prior_list_num <- rapply(prior_list_num,function(x) ifelse(tolower(x) %in% c("invgamma","ig","inv-gamma"),1,x), how = "replace")
   prior_list_num <- rapply(prior_list_num,function(x) ifelse(tolower(x) %in% c("mvn-icar"),2,x), how = "replace")
   stopifnot(all(names(prior_list_num) %in% c("mu","sigSq","beta","beta_tv"))) #these all need SOMETHING
+  prior_vec_num <- unlist(prior_list_num)
+
+  # #instead of using the prior_list, we could also build from a prior_vec
+  # prior_vec_num <- sapply(tolower(prior_vec), switch,
+  #                         "flat"=0,"invgamma"=1,"inv-gamma"=1,
+  #                         "mvn-icar"=2,"mvnicar"=2,"icar"=2)
+
 
   ####ASSIGN START VALUES####
   if(is.null(start_list)){
@@ -74,11 +82,16 @@ BayesSurv_AFTtv <- function(Y,
       if(is.null(start_list[[i]][["meanbtv"]])){ start_list[[i]][["meanbtv"]] <- runif(1, -0.1, 0.1) }
       if(is.null(start_list[[i]][["varbtv"]])){ start_list[[i]][["varbtv"]] <- runif(1, 0.5, 1.5) }
     }
+    #ensure everything is in the right order
+    start_list[[i]][c("mu","sigSq","beta","beta_tv",
+                      if(prior_list_num$beta_tv==2)c("meanbtv","varbtv") else NULL)]
   }
+  start_mat <- sapply(start_list,unlist)
 
   ####CHECK HYPERPARAMETERS####
   if(prior_list_num$sigSq==1){ stopifnot(length(hyper_list$sigSq)==2)}
   if(prior_list_num$beta_tv==2){ stopifnot(length(hyper_list$beta_tv)==2)}
+  hyper_vec <- unlist(hyper_list)
 
   ####PREP DATA####
   yUInf <- rep(0, n)
@@ -114,10 +127,14 @@ BayesSurv_AFTtv <- function(Y,
                     c0Inf			  = c0Inf,
                     Xmat        = Xmat,
                     Xvec_tv     = Xvec_tv,
-                    prior_list_num = prior_list_num,
-                    hyper_list  = hyper_list,
-                    tuning_list = tuning_list,
-                    start_list  = start_list[[i]],
+                    prior_vec_num = prior_vec_num,
+                    hyper_vec = hyper_vec,
+                    tuning_vec = tuning_vec,
+                    start_vec = start_mat[,i],
+                    # prior_list_num = prior_list_num,
+                    # hyper_list  = hyper_list,
+                    # tuning_list = tuning_list,
+                    # start_list  = start_list[[i]],
                     knots_init  = knots,
                     n_burnin		= n_burnin,
                     n_sample		= n_sample,

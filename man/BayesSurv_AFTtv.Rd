@@ -9,7 +9,7 @@ BayesSurv_AFTtv(
   Xmat,
   Xvec_tv,
   prior_list,
-  tuning_list,
+  tuning_vec,
   hyper_list,
   knots,
   numReps,
@@ -28,7 +28,7 @@ BayesSurv_AFTtv(
 
 \item{prior_list}{a list of priors being used}
 
-\item{tuning_list}{a list of tuning parameters}
+\item{tuning_vec}{a vec of tuning parameters}
 
 \item{hyper_list}{a list of hyperparameters}
 

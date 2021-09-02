@@ -5,8 +5,8 @@ AFT_LN_mcmc <- function(Wmat, wUInf, wLUeq, c0Inf, Xmat, hyperP, mcmcP, startVal
     .Call(`_AFTTV_AFT_LN_mcmc`, Wmat, wUInf, wLUeq, c0Inf, Xmat, hyperP, mcmcP, startValues, n_burnin, n_sample, thin)
 }
 
-AFTtv_LN_mcmc <- function(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_list_num, hyper_list, tuning_list, start_list, knots_init, n_burnin, n_sample, thin) {
-    .Call(`_AFTTV_AFTtv_LN_mcmc`, Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_list_num, hyper_list, tuning_list, start_list, knots_init, n_burnin, n_sample, thin)
+AFTtv_LN_mcmc <- function(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin) {
+    .Call(`_AFTTV_AFTtv_LN_mcmc`, Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin)
 }
 
 dmvnrm_arma <- function(x, mean, var, cholinvSigma_sub, logd = 1L) {
