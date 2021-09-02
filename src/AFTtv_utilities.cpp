@@ -75,7 +75,7 @@ void update_icar_mats(arma::mat &invSigma_btv,
   arma::vec intervals(K);
   intervals(0) = knots(0);
 
-  Rcpp::Rcout << "knots" << knots << "\n";
+  //Rcpp::Rcout << "knots" << knots << "\n";
 
 
   if(K==1){
@@ -128,7 +128,7 @@ void update_icar_mats(arma::mat &invSigma_btv,
     cholinvSigma_btv(arma::span(0,K-1),arma::span(0,K-1)) = arma::chol( invSigma_btv(arma::span(0,K-1),arma::span(0,K-1)) );
   }
 
-  Rcpp::Rcout << "Here is the cholinvSigma_btv " << cholinvSigma_btv(arma::span(0,K-1),arma::span(0,K-1)) << "\n";
+  //Rcpp::Rcout << "Here is the cholinvSigma_btv " << cholinvSigma_btv(arma::span(0,K-1),arma::span(0,K-1)) << "\n";
 
   return;
 

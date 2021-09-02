@@ -15,13 +15,11 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
                          const arma::vec &c0Inf,
                          const arma::mat &Xmat,
                          const arma::vec &Xvec_tv,
-                         const arma::vec &hyperP,
-                         double beta_prop_var,
-                         double btv_prop_var,
-                         double mu_prop_var,
-                         double sigSq_prop_var,
+                         Rcpp::List prior_list_num,
+                         Rcpp::List hyper_list,
+                         Rcpp::List tuning_list,
+                         Rcpp::List start_list,
                          const arma::vec &knots_init,
-                         const arma::vec &startValues,
                          int n_burnin,
                          int n_sample,
                          int thin){
@@ -38,34 +36,60 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
   int M; //counter for MCMC sampler
   int StoreInx; //index for where to store a sample, post-thinning
 
+
+  //SET PRIOR CODES
+  int sigSq_prior = prior_list_num["sigSq"];
+  int btv_prior = prior_list_num["beta_tv"];
+
+  //Rcpp::Rcout << "finished setting prior codes" << "\n";
+
+
   //SET MCMC TUNING PARAMETERS
-  int K_max = 50; //maximum number of distinct piecewise intervals
+
+  double mu_prop_var = tuning_list["mu"]; //might throw an error
+  double sigSq_prop_var = tuning_list["sigSq"]; //might throw an error
+  double beta_prop_var = tuning_list["beta"]; //might throw an error
+  Rcpp::NumericVector btv_tuning = tuning_list["beta_tv"];
+  double btv_prop_var = btv_tuning[0]; //might throw an error
+  int K_max = btv_tuning[1]; //maximum number of distinct piecewise intervals
+
+  //Rcpp::Rcout << "finished setting MCMC tuning params" << "\n";
 
   //SET HYPERPARAMETERS
   //flat prior for lognormal mu
   //flat prior for betas
 
   //gamma prior for lognormal sigSq
-  double a_sigSq = hyperP(0);
-  double b_sigSq = hyperP(1);
+  double a_sigSq, b_sigSq;
+  if(sigSq_prior==1){
+    Rcpp::NumericVector sigSq_hyper = hyper_list["sigSq"];
+    a_sigSq = sigSq_hyper[0];
+    b_sigSq = sigSq_hyper[1];
+  }
 
   //mvn-icar prior for btv
-  //flat hyperprior on mean for mean_btv
-  //gamma hyperprior for var_btv
-  double a_btv = hyperP(2);
-  double b_btv = hyperP(3);
-  //hyperparameter for dependence of time-varying beta coefficients
-  double c_btv = 1;
-
+  double a_btv, b_btv, c_btv,meanbtv,varbtv;
   arma::mat IminusW(K_max,K_max,arma::fill::eye);
   arma::vec Qvec(K_max);
   arma::mat Sigma_btv(K_max,K_max);
   arma::mat invSigma_btv(K_max,K_max);
   arma::mat cholinvSigma_btv(K_max,K_max);
+  if(btv_prior==2){
+    //flat hyperprior on mean for mean_btv
+    //gamma hyperprior for var_btv
+    Rcpp::NumericVector btv_hyper = hyper_list["beta_tv"];
+    a_btv = btv_hyper[0];
+    b_btv = btv_hyper[1];
+    //hyperparameter for dependence of time-varying beta coefficients
+    c_btv = 1;
 
-  update_icar_mats(invSigma_btv, cholinvSigma_btv, IminusW, Qvec, knots_init, c_btv, K);
+    //initialize matrices used in MVN-ICAR specification
+    update_icar_mats(invSigma_btv, cholinvSigma_btv, IminusW, Qvec, knots_init, c_btv, K);
 
-
+    //initialize hyperparameters
+    meanbtv = start_list["meanbtv"];
+    varbtv = start_list["varbtv"];
+  }
 
   /* manually set random scan probabilities
    double pBetaTV = 1.0/4.0; //probability of updating beta (random scan)
@@ -80,15 +104,15 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
    moveProb(3) = pSigSq;
    */
 
-  //initialize starting values
-  double mu = startValues(0);
-  double sigSq = startValues(1);
-  arma::vec beta = startValues(arma::span(2,2+p-1));
-  arma::vec beta_tv = startValues(arma::span(2+p,2+p-1+K));
-  arma::vec knots = knots_init;
-  double meanbtv = startValues(2+p+K);
-  double varbtv = startValues(2+p+K+1);
+  //Rcpp::Rcout << "finished setting hyperparams" << "\n";
 
+
+  //initialize starting values
+  double mu = start_list["mu"];
+  double sigSq = start_list["sigSq"];
+  arma::vec beta = start_list["beta"]; //TODO: what if there are no betas
+  arma::vec beta_tv = start_list["beta_tv"];
+  arma::vec knots = knots_init;
 
   /* //next, we'll add these changing dimensional things:
    arma::vec beta_tv(K_max);
@@ -97,16 +121,19 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
    arma::vec knots(span(0,K)) = knots_init;
    */
 
+  //Rcpp::Rcout << "finished setting starting values" << "\n";
+
+
   //create storage objects for results
   arma::mat sample_beta = arma::mat(p,n_store); //store betas column by column for "speed" ?
   arma::mat sample_btv = arma::mat(K,n_store); //store betas column by column for "speed" ?
   arma::vec sample_mu = arma::vec(n_store);
   arma::vec sample_sigSq = arma::vec(n_store);
-  arma::vec sample_meanbtv = arma::vec(n_store); //gibbs sampled so no acceptance counter
-  arma::vec sample_varbtv = arma::vec(n_store); //gibbs sampled so no acceptance counter
-
   arma::vec accept_beta = arma::vec(p);
   arma::vec accept_btv = arma::vec(K);
+  //initialize storage container for hyperparameters even if they aren't used.
+  arma::vec sample_meanbtv = arma::vec(n_store); //gibbs sampled so no acceptance counter
+  arma::vec sample_varbtv = arma::vec(n_store); //gibbs sampled so no acceptance counter
   int accept_mu = 0;
   int accept_sigSq = 0;
 
@@ -120,33 +147,40 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
   //  Rcpp::Rcout << "initial logVyL: " << logVyL(arma::span(0,10)) << "\n";
 
   for(M = 0; M < n_iter; M++){
-    Rcpp::Rcout << "iteration: " << M << "\n";
+    //Rcpp::Rcout << "iteration: " << M << "\n";
 
     AFTtv_LN_update_mu(logVyL, logVyU, logVc0, logvyL,
                        yUInf, yLUeq, c0Inf,
                        mu, sigSq, mu_prop_var, accept_mu);
-    Rcpp::Rcout << "updated mu: " << mu << "\n";
+    //Rcpp::Rcout << "updated mu: " << mu << "\n";
     AFTtv_LN_update_sigSq(logVyL, logVyU, logVc0, logvyL,
                           yUInf, yLUeq, c0Inf,
                           mu, sigSq, sigSq_prop_var,
                           a_sigSq, b_sigSq, accept_sigSq);
-    Rcpp::Rcout << "updated sigSq: " << sigSq << "\n";
+    //Rcpp::Rcout << "updated sigSq: " << sigSq << "\n";
     AFTtv_LN_update_beta(logVyL, logVyU, logVc0, logvyL,
                          yUInf, yLUeq, c0Inf,
                          Xmat, beta, mu, sigSq, beta_prop_var, accept_beta);
-    Rcpp::Rcout << "updated beta: " << beta.t() << "\n";
+    //Rcpp::Rcout << "updated beta: " << beta.t() << "\n";
 
 
-    AFTtv_LN_update_hyper_icar(beta_tv, meanbtv, varbtv,
-                               a_btv, b_btv, cholinvSigma_btv);
-    Rcpp::Rcout << "updated hyper: mu" << meanbtv << "var" << varbtv << "\n";
-
-    AFTtv_LN_update_btv_icar(Ymat, logVyL, logVyU, logVc0, logvyL,
-                             yUInf, yLUeq, c0Inf,
-                             Xmat, beta, Xvec_tv, beta_tv,
-                             mu, sigSq, knots, btv_prop_var,
-                             meanbtv, varbtv, cholinvSigma_btv, accept_btv);
-    Rcpp::Rcout << "updated beta_tv" << beta_tv.t() << "\n";
+    if(btv_prior==2){ //use the ICAR sampler
+      AFTtv_LN_update_hyper_icar(beta_tv, meanbtv, varbtv,
+                                 a_btv, b_btv, cholinvSigma_btv);
+      //Rcpp::Rcout << "updated hyper: mu" << meanbtv << "var" << varbtv << "\n";
+      AFTtv_LN_update_btv_icar(Ymat, logVyL, logVyU, logVc0, logvyL,
+                               yUInf, yLUeq, c0Inf,
+                               Xmat, beta, Xvec_tv, beta_tv,
+                               mu, sigSq, knots, btv_prop_var,
+                               meanbtv, varbtv, cholinvSigma_btv, accept_btv);
+      //Rcpp::Rcout << "updated beta_tv" << beta_tv.t() << "\n";
+    } else{
+      AFTtv_LN_update_btv(Ymat, logVyL, logVyU, logVc0, logvyL,
+                               yUInf, yLUeq, c0Inf,
+                               Xmat, beta, Xvec_tv, beta_tv,
+                               mu, sigSq, knots, btv_prop_var, accept_btv);
+      //Rcpp::Rcout << "updated beta_tv" << beta_tv.t() << "\n";
+    }
 
     /* // version with flat prior rather than MVN-ICAR
     AFTtv_LN_update_btv(Ymat, logVyL, logVyU, logVc0, logvyL,
@@ -165,8 +199,10 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
       sample_btv.col(StoreInx - 1) = beta_tv;
       sample_mu(StoreInx - 1) = mu;
       sample_sigSq(StoreInx - 1) = sigSq;
-      sample_meanbtv(StoreInx - 1) = meanbtv;
-      sample_varbtv(StoreInx - 1) = varbtv;
+      if(btv_prior == 2){
+        sample_meanbtv(StoreInx - 1) = meanbtv;
+        sample_varbtv(StoreInx - 1) = varbtv;
+      }
     }
 
     if( ( (M+1) % 10000 ) == 0){
@@ -178,10 +214,10 @@ Rcpp::List AFTtv_LN_rjmcmc(const arma::mat &Ymat,
 
   return Rcpp::List::create(
     Rcpp::Named("samples") = Rcpp::List::create(
-      Rcpp::Named("beta") = sample_beta.t(),
-      Rcpp::Named("beta_tv") = sample_btv.t(),
       Rcpp::Named("mu") = sample_mu,
       Rcpp::Named("sigSq") = sample_sigSq,
+      Rcpp::Named("beta") = sample_beta.t(),
+      Rcpp::Named("beta_tv") = sample_btv.t(),
       Rcpp::Named("meanbtv") = sample_meanbtv,
       Rcpp::Named("varbtv") = sample_varbtv),
       Rcpp::Named("accept") = Rcpp::List::create(

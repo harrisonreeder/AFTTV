@@ -8,10 +8,15 @@ BayesSurv_AFTtv(
   Y,
   Xmat,
   Xvec_tv,
-  hyperParams,
+  prior_list,
+  tuning_list,
+  hyper_list,
   knots,
-  startValues_vec,
-  mcmcParams
+  numReps,
+  thin,
+  burninPerc,
+  n_chains = NULL,
+  start_list = NULL
 )
 }
 \arguments{
@@ -21,11 +26,23 @@ BayesSurv_AFTtv(
 
 \item{Xvec_tv}{an n-length vector with the covariate having a time-varying effect}
 
-\item{hyperParams}{a list of hyperparameters (based on SemiCompRisks for now)}
+\item{prior_list}{a list of priors being used}
 
-\item{mcmcParams}{a list of mcmc tuning parameters (based on SemiCompRisks for now)}
+\item{tuning_list}{a list of tuning parameters}
 
-\item{startValues}{a vector of starting values for the parameters}
+\item{hyper_list}{a list of hyperparameters}
+
+\item{knots}{a vector of knots (doesn't start with 0, does end with maximum time)}
+
+\item{numReps}{numeric total number of iterations}
+
+\item{thin}{numeric number of iterations to take before each sample}
+
+\item{burninPerc}{numeric proportion of numReps to toss as burn-in}
+
+\item{n_chains}{numeric number of chains to initialize, if start_list is null}
+
+\item{start_list}{a list of lists of start values. If null, n_chains sets number of chains}
 }
 \value{
 a list with outputs
