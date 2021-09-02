@@ -5,6 +5,44 @@
 #include "AFTtv_utilities.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
+double AFTtv_LN_loglik(const arma::vec &logVyL,
+                            const arma::vec &logVyU,
+                            const arma::vec &logVc0,
+                            const arma::vec &logvyL,
+                            const arma::vec &yUInf,
+                            const arma::vec &yLUeq,
+                            const arma::vec &c0Inf,
+                            double &mu,
+                            double &sigSq) {
+  int n = logVyL.n_rows;
+  double curr_loglik = 0;
+
+  //in the future, I'd love to turn the yUInf etc indicators into indices so I could
+  //subset vectors and use vector operations directly.
+
+  for(int i = 0; i < n; i++){
+    /* cases:
+     * interval censoring (left and right diff.): compute survivor function at both, ll is log of difference.
+     * (note: log of difference is also logsumexp of log survivor functions, in case it's useful)
+     * right censoring (right is infinite): compute survivor function at left, ll is that
+     * no censoring (left and right equal): compute log density, ll is that */
+    if(yLUeq(i)==1){ //no censoring, so use log density
+      curr_loglik += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
+      - logVyL(i) + logvyL(i); //note this will actually cancel out with the proposal version, but for completeness let's keep it
+    } else if(yUInf(i)==1) { //right censoring, so use log survival
+      curr_loglik += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
+    } else { //interval censoring, so use log of difference of survival
+      curr_loglik += log(arma::normcdf(logVyU(i), mu, sqrt(sigSq))
+                          - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
+    }
+    //if there is left-truncation, then subtract off the extra term
+    if(c0Inf(i) == 0){ //this being 0 means the left truncation time is not log(0), so there's left truncation
+      curr_loglik += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
+    }
+  }
+  return curr_loglik;
+}
+
 /*BASELINE PARAMETERS (mu, sigSq)*/
 
 void AFTtv_LN_update_mu(const arma::vec &logVyL,
@@ -17,49 +55,21 @@ void AFTtv_LN_update_mu(const arma::vec &logVyL,
                         double &mu,
                         double &sigSq,
                         double &mu_prop_var,
-                        int &accept_mu) {
+                        int &accept_mu,
+                        double &curr_loglik) {
   int n = logVyL.n_rows;
-  int i, u;
-  double loglh, loglh_prop, logR, mu_prop;
+  int u;
+  double loglh_prop, logR, mu_prop;
   //double logprior, logprior_prop;
 
-  loglh = 0;
-  loglh_prop = 0;
   mu_prop = R::rnorm(mu, sqrt(mu_prop_var));
-
-  //in the future, I'd love to turn the yUInf etc indicators into indices so I could
-  //subset vectors and use vector operations directly.
-
-  for(i = 0; i < n; i++){
-    /* cases:
-     * interval censoring (left and right diff.): compute survivor function at both, ll is log of difference.
-     * (note: log of difference is also logsumexp of log survivor functions, in case it's useful)
-     * right censoring (right is infinite): compute survivor function at left, ll is that
-     * no censoring (left and right equal): compute log density, ll is that */
-    if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
-      - logVyL(i) + logvyL(i); //note this will actually cancel out with the proposal version, but for completeness let's keep it
-      loglh_prop += arma::log_normpdf(logVyL(i), mu_prop, sqrt(sigSq))
-        - logVyL(i) + logvyL(i);
-    } else if(yUInf(i)==1) { //right censoring, so use log survival
-      loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
-      loglh_prop += log1p(-arma::normcdf(logVyL(i), mu_prop, sqrt(sigSq)));
-    } else { //interval censoring, so use log of difference of survival
-      loglh      += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
-      loglh_prop += log( arma::normcdf(logVyU(i), mu_prop, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu_prop, sqrt(sigSq)) );
-    }
-    //if there is left-truncation, then subtract off the extra term
-    if(c0Inf(i) == 0){
-      loglh += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
-      loglh_prop += -log1p(-arma::normcdf(logVc0(i), mu_prop, sqrt(sigSq)));
-    }
-  }
+  loglh_prop = AFTtv_LN_loglik(logVyL,logVyU,logVc0,logvyL,
+                         yUInf,yLUeq,c0Inf,
+                         mu_prop,sigSq);
 
   //note, because proposal normal distribution is "symmetric"
   //aka, N(x|y,sd) = N(y|x,sd), this is just Metropolis step with no proposal distributions.
-  logR = loglh_prop - loglh;
+  logR = loglh_prop - curr_loglik;
 
   /* //if we add a prior of some kind, it should go here...
    logprior = R::dnorm(mu, mu0, sqrt(h0), 1);
@@ -71,9 +81,9 @@ void AFTtv_LN_update_mu(const arma::vec &logVyL,
   if(u == 1){
     mu = mu_prop;
     accept_mu += 1;
+    curr_loglik = loglh_prop;
   }
   return;
-
 }
 
 void AFTtv_LN_update_sigSq(const arma::vec &logVyL,
@@ -88,59 +98,37 @@ void AFTtv_LN_update_sigSq(const arma::vec &logVyL,
                            double &sigSq_prop_var,
                            double &a_sigSq,
                            double &b_sigSq,
-                           int &accept_sigSq) {
+                           int &accept_sigSq,
+                           double &curr_loglik) {
   int n = logVyL.n_rows;
-  int i, u;
-  double loglh, loglh_prop, logR, sigSq_prop;
+  int u;
+  double loglh_prop, logR, sigSq_prop;
   double logprior, logprior_prop;
 
-  loglh = 0;
-  loglh_prop = 0;
   sigSq_prop = exp( R::rnorm( log(sigSq), sqrt(sigSq_prop_var) ) );
-
-  for(i = 0; i < n; i++){
-    if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
-      - logVyL(i) + logvyL(i);
-      loglh_prop += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq_prop))
-        - logVyL(i) + logvyL(i);
-    } else if(yUInf(i)==1) { //right censoring, so use log survival
-      loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
-      loglh_prop += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq_prop)));
-    } else { //interval censoring, so use log of difference of survival
-      loglh      += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
-      loglh_prop += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq_prop))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq_prop)) );
-    }
-    //if there is left-truncation, then subtract off the extra term
-    if(c0Inf(i) == 0){
-      loglh += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
-      loglh_prop += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq_prop)));
-    }
-  }
+  loglh_prop = AFTtv_LN_loglik(logVyL,logVyU,logVc0,logvyL,
+                               yUInf,yLUeq,c0Inf,
+                               mu,sigSq_prop);
 
   //sigSq has an inverse-gamma prior, so we define them as follows
   logprior = (-a_sigSq-1)*log(sigSq) - b_sigSq/sigSq;
   logprior_prop = (-a_sigSq-1)*log(sigSq_prop) - b_sigSq/sigSq_prop;
-
 
   //note, because proposal normal distribution is "symmetric"
   //aka, N(x|y,sd) = N(y|x,sd), this is just Metropolis step with no proposal distributions.
   //BUT, last "log(sigSq_prop) - log(sigSq)" is the "jacobian" because we sample on transformed scale
   //Because we propose from log(sigSq) to sample sigSq, so we need to add jacobian
   //https://barumpark.com/blog/2019/Jacobian-Adjustments/ has this exact example
-  logR = loglh_prop - loglh + logprior_prop - logprior + log(sigSq_prop) - log(sigSq);
+  logR = loglh_prop - curr_loglik + logprior_prop - logprior + log(sigSq_prop) - log(sigSq);
   u = log(R::runif(0, 1)) < logR;
   if(u == 1){
     sigSq = sigSq_prop;
     accept_sigSq += 1;
+    curr_loglik = loglh_prop;
   }
   return;
 
 }
-
-
 
 /*TIME-INVARIANT REGRESSION PARAMETERS*/
 
@@ -156,15 +144,13 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
                           double &mu,
                           double &sigSq,
                           double &beta_prop_var,
-                          arma::vec &accept_beta){
+                          arma::vec &accept_beta,
+                          double &curr_loglik){
   int n = logVyL.n_rows;
   int p = Xmat.n_cols;
-  int j, i, u;
-  double loglh, loglh_prop, logR;
+  int j, u;
+  double loglh_prop, logR;
   //double logprior, logprior_prop;
-
-  loglh = 0;
-  loglh_prop = 0;
 
   //update a single beta parameter
   j = (int) R::runif(0, p); //will need to update to sample only from non-tv X's
@@ -176,31 +162,13 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
   arma::vec logVc0_prop = logVc0 + xbetaj_propdiff;
   arma::vec logvyL_prop = logvyL + xbetaj_propdiff;
 
-  for(i = 0; i < n; i++){
-    if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
-                    - logVyL(i) + logvyL(i);
-      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq))
-                    - logVyL_prop(i) + logvyL_prop(i);
-    } else if(yUInf(i)==1) { //right censoring, so use log survival
-      loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
-      loglh_prop += log1p(-arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)));
-    } else { //interval censoring, so use log of difference of survival
-      loglh      += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
-      loglh_prop += log( arma::normcdf(logVyU_prop(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)) );
-    }
-    //if there is left-truncation, then subtract off the extra term
-    if(c0Inf(i) == 0){
-      loglh += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
-      loglh_prop += -log1p(-arma::normcdf(logVc0_prop(i), mu, sqrt(sigSq)));
-    }
-  }
+  loglh_prop = AFTtv_LN_loglik(logVyL_prop,logVyU_prop,logVc0_prop,logvyL_prop,
+                               yUInf,yLUeq,c0Inf,
+                               mu,sigSq);
 
   //note, because proposal normal distribution is "symmetric"
   //aka, N(x|y,sd) = N(y|x,sd), this is just Metropolis step with no proposal distributions.
-  logR = loglh_prop - loglh;
+  logR = loglh_prop - curr_loglik;
 
   /* //if we add a prior of some kind, it should go here...
    logprior
@@ -216,13 +184,13 @@ void AFTtv_LN_update_beta(arma::vec &logVyL,
     logVc0 = logVc0_prop;
     logvyL = logvyL_prop;
     accept_beta(j) += 1;
+    curr_loglik = loglh_prop;
   }
   return;
 }
 
 
 /*TIME-VARYING REGRESSION PARAMETERS*/
-
 
 void AFTtv_LN_update_hyper_icar(const arma::vec &beta_tv,
                                 double &meanbtv,
@@ -285,16 +253,15 @@ void AFTtv_LN_update_btv_icar(const arma::mat &Ymat,
                          double &meanbtv,
                          double &varbtv,
                          const arma::mat &cholinvSigma_btv,
-                         arma::vec &accept_btv){
+                         arma::vec &accept_btv,
+                         double &curr_loglik){
 
   int n = logVyL.n_rows;
   int K = beta_tv.n_rows; //update this once beta_tv has changing dimension
-  int k, i, u;
-  double loglh, loglh_prop, logprior, logprior_prop, logR;
+  int k, u;
+  double loglh_prop, logprior, logprior_prop, logR;
 //  double nu_btv, nu_btv_prop;
 
-  loglh = 0;
-  loglh_prop = 0;
   logprior = 0;
   logprior_prop = 0;
 
@@ -313,36 +280,9 @@ void AFTtv_LN_update_btv_icar(const arma::mat &Ymat,
 
   arma::vec logvyL_prop = vx_pw(Ymat.col(0), Xmat, beta, Xvec_tv, beta_tv_prop, knots,1);
 
-  /* my problem is that the parameters for later intervals are flying off into space
-   if(k>0){
-   Rcpp::Rcout << "k : " << k ;
-   Rcpp::Rcout << "beta_tvk_prop: " << beta_tv_prop(k) << "\n";
-   Rcpp::Rcout << "initial logVyL: " << logVyL(arma::span(0,5)).t() << "\n";
-   Rcpp::Rcout << "initial logVyL_prop: " << logVyL_prop(arma::span(0,5)).t() << "\n";
-   }
-   */
-
-  for(i = 0; i < n; i++){
-    if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
-      - logVyL(i) + logvyL(i);
-      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq))
-        - logVyL_prop(i) + logvyL_prop(i);
-    } else if(yUInf(i)==1) { //right censoring, so use log survival
-      loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
-      loglh_prop += log1p(-arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)));
-    } else { //interval censoring, so use log of difference of survival
-      loglh      += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
-      loglh_prop += log( arma::normcdf(logVyU_prop(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)) );
-    }
-    //if there is left-truncation, then subtract off the extra term
-    if(c0Inf(i) == 0){
-      loglh += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
-      loglh_prop += -log1p(-arma::normcdf(logVc0_prop(i), mu, sqrt(sigSq)));
-    }
-  }
+  loglh_prop = AFTtv_LN_loglik(logVyL_prop,logVyU_prop,logVc0_prop,logvyL_prop,
+                               yUInf,yLUeq,c0Inf,
+                               mu,sigSq);
 
   //compute prior information for MVN-ICAR
   //If we don't do newton-raphson then it's pretty straightforward actually!
@@ -361,7 +301,7 @@ void AFTtv_LN_update_btv_icar(const arma::mat &Ymat,
   //note, because for now proposal normal distribution is "symmetric"
   //aka, N(x|y,sd) = N(y|x,sd), this is just Metropolis step with no proposal distributions.
   //no need for any other jacobian corrections because we are not proposing on a different scale
-  logR = loglh_prop - loglh + logprior_prop - logprior;
+  logR = loglh_prop - curr_loglik + logprior_prop - logprior;
 
   /* //Don't need to compute nu because it's only used for newton steps
   if(K > 1) {
@@ -388,10 +328,10 @@ void AFTtv_LN_update_btv_icar(const arma::mat &Ymat,
     logVc0 = logVc0_prop;
     logvyL = logvyL_prop;
     accept_btv(k) += 1;
+    curr_loglik = loglh_prop;
   }
   return;
 }
-
 
 
 void AFTtv_LN_update_btv(const arma::mat &Ymat,
@@ -410,18 +350,19 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
                          double &sigSq,
                          arma::vec &knots,
                          double &btv_prop_var,
-                         arma::vec &accept_btv){
+                         arma::vec &accept_btv,
+                         double &curr_loglik){
 
   int n = logVyL.n_rows;
   int K = beta_tv.n_rows;
-  int k, i, u;
-  double loglh, loglh_prop, logR;
-  double logprior, logprior_prop;
+  int k, u;
+  double loglh_prop, logR;
 
-  loglh = 0;
-  loglh_prop = 0;
+  /*
+  double logprior, logprior_prop;
   logprior = 0;
   logprior_prop = 0;
+  */
 
   //choose one beta_tv element to update
   //for simplicity, we will skip the ICAR and just go with a flat prior on these for now.
@@ -439,40 +380,13 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
 
   arma::vec logvyL_prop = vx_pw(Ymat.col(0), Xmat, beta, Xvec_tv, beta_tv_prop, knots,1);
 
-  /* my problem is that the parameters for later intervals are flying off into space
-   if(k>0){
-   Rcpp::Rcout << "k : " << k ;
-   Rcpp::Rcout << "beta_tvk_prop: " << beta_tv_prop(k) << "\n";
-   Rcpp::Rcout << "initial logVyL: " << logVyL(arma::span(0,5)).t() << "\n";
-   Rcpp::Rcout << "initial logVyL_prop: " << logVyL_prop(arma::span(0,5)).t() << "\n";
-   }
-   */
-
-  for(i = 0; i < n; i++){
-    if(yLUeq(i)==1){ //no censoring, so use log density
-      loglh      += arma::log_normpdf(logVyL(i), mu, sqrt(sigSq))
-      - logVyL(i) + logvyL(i);
-      loglh_prop += arma::log_normpdf(logVyL_prop(i), mu, sqrt(sigSq))
-        - logVyL_prop(i) + logvyL_prop(i);
-    } else if(yUInf(i)==1) { //right censoring, so use log survival
-      loglh      += log1p(-arma::normcdf(logVyL(i), mu, sqrt(sigSq)));
-      loglh_prop += log1p(-arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)));
-    } else { //interval censoring, so use log of difference of survival
-      loglh      += log( arma::normcdf(logVyU(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL(i), mu, sqrt(sigSq)) );
-      loglh_prop += log( arma::normcdf(logVyU_prop(i), mu, sqrt(sigSq))
-                           - arma::normcdf(logVyL_prop(i), mu, sqrt(sigSq)) );
-    }
-    //if there is left-truncation, then subtract off the extra term
-    if(c0Inf(i) == 0){
-      loglh += -log1p(-arma::normcdf(logVc0(i), mu, sqrt(sigSq)));
-      loglh_prop += -log1p(-arma::normcdf(logVc0_prop(i), mu, sqrt(sigSq)));
-    }
-  }
+  loglh_prop = AFTtv_LN_loglik(logVyL_prop,logVyU_prop,logVc0_prop,logvyL_prop,
+                               yUInf,yLUeq,c0Inf,
+                               mu,sigSq);
 
   //note, because proposal normal distribution is "symmetric"
   //aka, N(x|y,sd) = N(y|x,sd), this is just Metropolis step with no proposal distributions.
-  logR = loglh_prop - loglh;
+  logR = loglh_prop - curr_loglik;
 
   //if we add a prior of some kind, it should go here...
   // here is a basic random walk prior, where the prior is centered at the previous value
@@ -495,6 +409,7 @@ void AFTtv_LN_update_btv(const arma::mat &Ymat,
     logVc0 = logVc0_prop;
     logvyL = logvyL_prop;
     accept_btv(k) += 1;
+    curr_loglik = loglh_prop;
   }
   return;
 }

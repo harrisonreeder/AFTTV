@@ -106,9 +106,8 @@ BayesSurv_AFTtv <- function(Y,
   # mcmcRet <- list()
   for(i in 1:n_chains){
     print(paste0("Chain: ", i))
-    # mcmcRet     <- AFTtv_LN_mcmc( #for now, set this aside so I can test my rj version
-    #mcmcRet[[i]] <- AFTtv_LN_rjmcmc(
-    mcmcRet <- AFTtv_LN_rjmcmc(
+    #mcmcRet[[i]]     <- AFTtv_LN_mcmc( #for now, set this aside so I can test my rj version
+    mcmcRet <- AFTtv_LN_mcmc(
                     Ymat        = Y,
                     yUInf			  = yUInf,
                     yLUeq			  = yLUeq,
