@@ -4,18 +4,42 @@
 \alias{BayesSurv_AFT2}
 \title{Bayesian Accelerated Failure Time Model}
 \usage{
-BayesSurv_AFT2(Y, Xmat, hyperParams, startValues_vec, mcmcParams)
+BayesSurv_AFT2(
+  Y,
+  Xmat,
+  tuning_vec,
+  hyper_list,
+  numReps,
+  thin,
+  burninPerc,
+  n_chains = NULL,
+  start_list = NULL
+)
 }
 \arguments{
 \item{Y}{an n by 3 matrix with columns: left end of interval, right end of interval, left truncation time}
 
 \item{Xmat}{an n by p matrix of covariates}
 
-\item{hyperParams}{a list of hyperparameters (based on SemiCompRisks for now)}
+\item{tuning_vec}{a vec of tuning parameters}
 
-\item{mcmcParams}{a list of mcmc tuning parameters (based on SemiCompRisks for now)}
+\item{hyper_list}{a list of hyperparameters}
 
-\item{startValues}{a vector of starting values for the parameters}
+\item{numReps}{numeric total number of iterations}
+
+\item{thin}{numeric number of iterations to take before each sample}
+
+\item{burninPerc}{numeric proportion of numReps to toss as burn-in}
+
+\item{n_chains}{numeric number of chains to initialize, if start_list is null}
+
+\item{start_list}{a list of lists of start values. If null, n_chains sets number of chains}
+
+\item{Xvec_tv}{an n-length vector with the covariate having a time-varying effect}
+
+\item{prior_list}{a list of priors being used}
+
+\item{knots}{a vector of knots (doesn't start with 0, does end with maximum time)}
 }
 \value{
 a list with outputs

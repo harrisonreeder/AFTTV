@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // AFT_LN_mcmc
-Rcpp::List AFT_LN_mcmc(const arma::mat& Wmat, const arma::vec& wUInf, const arma::vec& wLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& hyperP, const arma::vec& mcmcP, const arma::vec& startValues, int n_burnin, int n_sample, int thin);
-RcppExport SEXP _AFTTV_AFT_LN_mcmc(SEXP WmatSEXP, SEXP wUInfSEXP, SEXP wLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP hyperPSEXP, SEXP mcmcPSEXP, SEXP startValuesSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
+Rcpp::List AFT_LN_mcmc(const arma::mat& Wmat, const arma::vec& wUInf, const arma::vec& wLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& hyper_vec, const arma::vec& tuning_vec, const arma::vec& start_vec, int n_burnin, int n_sample, int thin);
+RcppExport SEXP _AFTTV_AFT_LN_mcmc(SEXP WmatSEXP, SEXP wUInfSEXP, SEXP wLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP hyper_vecSEXP, SEXP tuning_vecSEXP, SEXP start_vecSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,13 +17,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type wLUeq(wLUeqSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type c0Inf(c0InfSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Xmat(XmatSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type hyperP(hyperPSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type mcmcP(mcmcPSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type startValues(startValuesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hyper_vec(hyper_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tuning_vec(tuning_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type start_vec(start_vecSEXP);
     Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
     Rcpp::traits::input_parameter< int >::type n_sample(n_sampleSEXP);
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
-    rcpp_result_gen = Rcpp::wrap(AFT_LN_mcmc(Wmat, wUInf, wLUeq, c0Inf, Xmat, hyperP, mcmcP, startValues, n_burnin, n_sample, thin));
+    rcpp_result_gen = Rcpp::wrap(AFT_LN_mcmc(Wmat, wUInf, wLUeq, c0Inf, Xmat, hyper_vec, tuning_vec, start_vec, n_burnin, n_sample, thin));
     return rcpp_result_gen;
 END_RCPP
 }
