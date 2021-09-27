@@ -9,18 +9,19 @@
 #' @param shp
 #' @param tv_type
 #' @param knots
+#' @param baseline
 #' @param lower
 #' @param upper
 #'
 #' @return
 #' @export
 Smarg_inv = function(p,x_base_aug, x_tv_aug, beta_base, beta_tv,
-                     int, shp, tv_type, knots=NULL,lower=0,upper=100){
+                     int, shp, tv_type, knots=NULL,baseline="weibull",lower=0,upper=100){
   # browser()
   tryCatch(stats::uniroot(f = function (t){p -
       Smarg(t=t, x_base_aug = x_base_aug, x_tv_aug=x_tv_aug,
             beta_base = beta_base, beta_tv = beta_tv, int = int, shp = shp,
-            tv_type = tv_type, knots = knots)},
+            tv_type = tv_type, knots = knots,baseline=baseline)},
       lower = lower, upper = upper)$root,
       error=function(e){return(NA)})
 }

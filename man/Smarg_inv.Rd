@@ -14,6 +14,7 @@ Smarg_inv(
   shp,
   tv_type,
   knots = NULL,
+  baseline = "weibull",
   lower = 0,
   upper = 100
 )

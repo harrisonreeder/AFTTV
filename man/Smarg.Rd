@@ -14,6 +14,7 @@ Smarg(
   shp,
   tv_type,
   knots = NULL,
+  baseline = "weibull",
   ...
 )
 }
