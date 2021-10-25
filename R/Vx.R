@@ -12,16 +12,13 @@
 #' @param tv_type
 #' @param basis
 #' @param knots
-#' @param deg
-#' @param tstar
 #' @param ...
 #'
 #' @return
 #' @export
 Vx <- function(t_obj, x_base=NULL, beta_base=NULL, x_tv=NULL, beta_tv=NULL,
                xbeta_base=NULL, xbeta_tv=NULL,
-               tv_type, basis=NULL, knots=NULL,
-               deg=1,tstar=1e100,...){
+               tv_type, basis=NULL, knots=NULL){
   #browser()
 
   #First, work through what to do with the time-varying inputs

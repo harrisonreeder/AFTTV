@@ -15,11 +15,8 @@ Sx_inv(
   tv_type,
   inv_basis = NULL,
   knots = NULL,
-  deg = 1,
-  tstar = 1e+100,
   accelfactor = TRUE,
-  logSinv = FALSE,
-  ...
+  logSinv = FALSE
 )
 }
 \arguments{

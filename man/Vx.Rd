@@ -14,10 +14,7 @@ Vx(
   xbeta_tv = NULL,
   tv_type,
   basis = NULL,
-  knots = NULL,
-  deg = 1,
-  tstar = 1e+100,
-  ...
+  knots = NULL
 )
 }
 \arguments{

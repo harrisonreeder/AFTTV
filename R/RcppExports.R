@@ -17,3 +17,7 @@ Vx_pw <- function(T, Xmat, beta, Xvec_tv, beta_tv, knots, log_out) {
     .Call(`_AFTTV_Vx_pw`, T, Xmat, beta, Xvec_tv, beta_tv, knots, log_out)
 }
 
+AFTtvnew_LN_mcmc <- function(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin) {
+    .Call(`_AFTTV_AFTtvnew_LN_mcmc`, Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin)
+}
+

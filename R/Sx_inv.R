@@ -23,7 +23,7 @@
 Sx_inv <- function(para, p_obj, x_tv=NULL, beta_tv=NULL,
                    x_base=NULL, beta_base=NULL, baseline="weibull",
                    tv_type, inv_basis=NULL, knots=NULL,
-                   deg=1,tstar=1e100,accelfactor=TRUE, logSinv = FALSE,...){
+                   accelfactor=TRUE, logSinv = FALSE){
 
   # browser()
 
@@ -49,7 +49,7 @@ Sx_inv <- function(para, p_obj, x_tv=NULL, beta_tv=NULL,
   Vinv_temp <- Vx_inv(t_obj = S0_p,
                       beta_base = beta_base_temp, x_base = x_base,
                       beta_tv = beta_tv_temp, x_tv = x_tv,
-                      tv_type=tv_type, knots=knots, deg=deg,tstar=tstar,...)
+                      tv_type=tv_type, knots=knots)
 
   if(accelfactor){Vinv_temp <- Vinv_temp/S0_p}
   if(logSinv){Vinv_temp <- log(Vinv_temp)}

@@ -24,7 +24,7 @@ Smarg <- function(t, x_base_aug, x_tv_aug, beta_base, beta_tv,
                x_base = x_base_aug, x_tv = x_tv_aug,
                beta_base = beta_base,
                beta_tv = beta_tv,
-               tv_type=tv_type,knots=knots,...)
+               tv_type=tv_type,knots=knots)
   if(tolower(baseline) %in% c("wb","weibull")){
     S_temp_vec <- stats::pweibull(q=V_temp,
                                   scale = exp(int), shape = shp,lower.tail = FALSE)

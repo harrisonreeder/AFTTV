@@ -12,10 +12,7 @@ nll_AFTtv(
   x_tv,
   baseline = "weibull",
   basis = NULL,
-  tv_type,
-  deg = 1,
-  tstar = 1e+100,
-  ...
+  tv_type
 )
 }
 \arguments{

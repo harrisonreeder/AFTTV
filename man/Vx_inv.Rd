@@ -13,14 +13,11 @@ Vx_inv(
   beta_base = NULL,
   tv_type,
   inv_basis = NULL,
-  knots = NULL,
-  deg = 1,
-  tstar = 1e+100,
-  ...
+  knots = NULL
 )
 }
 \arguments{
-\item{...}{}
+\item{knots}{}
 }
 \value{
 

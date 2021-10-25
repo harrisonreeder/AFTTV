@@ -15,7 +15,7 @@
 #' @return
 #' @export
 nll_AFTtv <- function (para, y, delta, x_base, x_tv, baseline = "weibull", basis=NULL,
-                       tv_type, deg=1,tstar=1e100,...){
+                       tv_type){
   # browser()
 
   nP_base <- ncol(x_base)
@@ -42,7 +42,7 @@ nll_AFTtv <- function (para, y, delta, x_base, x_tv, baseline = "weibull", basis
 
   V_temp <- Vx(t_obj=y, xbeta_base=xbeta_base_temp,
                xbeta_tv=xbeta_tv_temp,basis=basis,
-               tv_type=tv_type, deg=deg,tstar=tstar,...)
+               tv_type=tv_type)
 
   if(tolower(baseline)=="weibull"){
     logS0 <- function(x){stats::pweibull(q=x,scale = exp(intercept_temp),

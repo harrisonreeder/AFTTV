@@ -83,12 +83,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// AFTtvnew_LN_mcmc
+Rcpp::List AFTtvnew_LN_mcmc(const arma::mat& Ymat, const arma::vec& yUInf, const arma::vec& yLUeq, const arma::vec& c0Inf, const arma::mat& Xmat, const arma::vec& Xvec_tv, const arma::vec& prior_vec_num, const arma::vec& hyper_vec, const arma::vec& tuning_vec, const arma::vec& start_vec, const arma::vec& knots_init, int n_burnin, int n_sample, int thin);
+RcppExport SEXP _AFTTV_AFTtvnew_LN_mcmc(SEXP YmatSEXP, SEXP yUInfSEXP, SEXP yLUeqSEXP, SEXP c0InfSEXP, SEXP XmatSEXP, SEXP Xvec_tvSEXP, SEXP prior_vec_numSEXP, SEXP hyper_vecSEXP, SEXP tuning_vecSEXP, SEXP start_vecSEXP, SEXP knots_initSEXP, SEXP n_burninSEXP, SEXP n_sampleSEXP, SEXP thinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Ymat(YmatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type yUInf(yUInfSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type yLUeq(yLUeqSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type c0Inf(c0InfSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Xmat(XmatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Xvec_tv(Xvec_tvSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_vec_num(prior_vec_numSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hyper_vec(hyper_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tuning_vec(tuning_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type start_vec(start_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots_init(knots_initSEXP);
+    Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
+    Rcpp::traits::input_parameter< int >::type n_sample(n_sampleSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    rcpp_result_gen = Rcpp::wrap(AFTtvnew_LN_mcmc(Ymat, yUInf, yLUeq, c0Inf, Xmat, Xvec_tv, prior_vec_num, hyper_vec, tuning_vec, start_vec, knots_init, n_burnin, n_sample, thin));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_AFTTV_AFT_LN_mcmc", (DL_FUNC) &_AFTTV_AFT_LN_mcmc, 11},
     {"_AFTTV_AFTtv_LN_mcmc", (DL_FUNC) &_AFTTV_AFTtv_LN_mcmc, 14},
     {"_AFTTV_dmvnrm_arma", (DL_FUNC) &_AFTTV_dmvnrm_arma, 5},
     {"_AFTTV_Vx_pw", (DL_FUNC) &_AFTTV_Vx_pw, 7},
+    {"_AFTTV_AFTtvnew_LN_mcmc", (DL_FUNC) &_AFTTV_AFTtvnew_LN_mcmc, 14},
     {NULL, NULL, 0}
 };
 

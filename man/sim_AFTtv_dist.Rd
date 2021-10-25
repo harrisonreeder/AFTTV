@@ -14,14 +14,11 @@ sim_AFTtv_dist(
   intercept,
   scale,
   cens,
-  knots,
-  deg = 1,
-  tstar = 1e+100,
-  ...
+  knots
 )
 }
 \arguments{
-\item{...}{}
+\item{knots}{}
 }
 \value{
 

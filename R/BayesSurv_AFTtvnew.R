@@ -15,7 +15,7 @@
 #'
 #' @return a list with outputs
 #' @export
-BayesSurv_AFTtv <- function(Y,
+BayesSurv_AFTtvnew <- function(Y,
                 Xmat,
                 Xvec_tv,
                 prior_list,
@@ -120,7 +120,7 @@ BayesSurv_AFTtv <- function(Y,
   for(i in 1:n_chains){
     print(paste0("Chain: ", i))
     #mcmcRet[[i]]     <- AFTtv_LN_mcmc( #for now, set this aside so I can test my rj version
-    mcmcRet <- AFTtv_LN_mcmc(
+    mcmcRet <- AFTtvnew_LN_mcmc(
                     Ymat        = Y,
                     yUInf			  = yUInf,
                     yLUeq			  = yLUeq,
@@ -140,11 +140,8 @@ BayesSurv_AFTtv <- function(Y,
                     n_sample		= n_sample,
                     thin        = thin)
 
-    #THIS HACKILY SUBSETS TO THE RIGHT NUMBER OF PARAMETERS SAMPLED
-    #IN CASE WE SET THE BETA_TV PRIOR TO BE FLAT, WE JUST DROP THE LAST TWO COLUMNS
-    #WHICH HAPPEN TO BE EMPTY VECTORS CORRESPONDING TO THE MVN-ICAR PRIOR
     out_list[["samples"]][,i,] <- do.call(what = cbind,
-                                          args = mcmcRet$samples)[,1:p_tot]
+                                          args = mcmcRet$samples)
     out_list[["accept"]][[paste0("chain",i)]] <- mcmcRet$accept
   }
 
@@ -153,8 +150,7 @@ BayesSurv_AFTtv <- function(Y,
   dimnames(out_list[["samples"]]) <- list(as.character(1:n_store),
                                           paste0("chain:",1:n_chains),
                                           c("mu","sigSq",paste0("beta",1:p),
-                                            paste0("beta_tv",1:K),
-                                            if(prior_list_num$beta_tv==2) c("meanbtv","varbtv") else NULL))
+                                            paste0("beta_tv",1:K)))
 
   #for now, my plan is going to be to leverage the bayesplot package to
   #make visuals

@@ -11,16 +11,12 @@
 #' @param tv_type
 #' @param inv_basis
 #' @param knots
-#' @param deg
-#' @param tstar
-#' @param ...
 #'
 #' @return
 #' @export
 Vx_inv <- function(t_obj, x_tv=NULL, beta_tv=NULL,
                    xbeta_base=NULL, x_base=NULL, beta_base=NULL,
-                   tv_type, inv_basis=NULL, knots=NULL,
-                   deg=1,tstar=1e100,...){
+                   tv_type, inv_basis=NULL, knots=NULL){
   # browser()
   temp <- NULL
 
